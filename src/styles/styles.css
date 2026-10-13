@@ -1,0 +1,170 @@
+/* =========================================================
+   HOJA DE ESTILOS GLOBAL - AUDI F1 STORE
+   Variables de color, reset de cajas y ajustes sobre Bootstrap 5.
+========================================================= */
+:root {
+  /* Colores oficiales Audi F1: Negro, Rojo, Blanco y Gris Oscuro */
+  --color-principal: #000000;
+  --color-secundario: #e60000;
+  --color-fondo: #ffffff;
+  --color-gris-claro: #f4f4f4;
+  --color-gris-oscuro: #1a1a1a;
+  --fuente-principal: "Helvetica Neue", Arial, sans-serif;
+}
+
+/* =========================================
+   RESETEO DE CAJAS Y ESTILOS BASE
+========================================= */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--fuente-principal);
+  background-color: var(--color-fondo);
+  color: var(--color-principal);
+}
+
+/* =========================================
+   NAVBAR (Personalización de Bootstrap)
+========================================= */
+.navbar {
+  padding: 15px 0;
+  background-color: var(--color-principal) !important;
+}
+
+.navbar-brand {
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--color-fondo) !important;
+}
+
+.navbar-brand span {
+  color: var(--color-secundario); /* "F1" en rojo para destacar */
+  font-weight: bold;
+}
+
+.nav-link {
+  text-transform: uppercase;
+  font-size: 14px;
+  color: var(--color-fondo) !important;
+  transition: color 0.3s ease; /* Transición suave */
+}
+
+.nav-link:hover {
+  color: var(--color-secundario) !important; /* Hover en rojo */
+}
+
+/* =========================================
+   SECCIÓN HERO (Banner Principal)
+========================================= */
+.bg-light {
+  background-color: var(--color-gris-oscuro) !important;
+  color: var(--color-fondo);
+}
+
+.bg-light p {
+  color: #cccccc;
+}
+
+/* =========================================
+   TARJETAS DE PRODUCTO (Card)
+========================================= */
+.card {
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
+  border-radius: 0;
+  border: 1px solid #eaeaea;
+}
+
+/* Efecto hover: la tarjeta se eleva ligeramente */
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15) !important;
+}
+
+.card-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+/* =========================================
+   BOTONES
+========================================= */
+.btn-dark {
+  background-color: var(--color-secundario);
+  border: none;
+  border-radius: 0;
+  text-transform: uppercase;
+  font-weight: bold;
+  letter-spacing: 1px;
+  transition: background-color 0.3s ease;
+}
+
+.btn-dark:hover {
+  background-color: #b30000; /* Rojo más oscuro al pasar el mouse */
+}
+
+/* =========================================
+   UTILIDADES DE TIPOGRAFÍA
+   (Reemplazan los style="" en línea del HTML)
+========================================= */
+.fs-sm {
+  font-size: 0.9rem;
+}
+.fs-xs {
+  font-size: 0.85rem;
+}
+.fs-xxs {
+  font-size: 0.8rem;
+}
+.fs-tiny {
+  font-size: 0.75rem;
+}
+.ls-1 {
+  letter-spacing: 1px;
+}
+.ls-2 {
+  letter-spacing: 2px;
+}
+.parrafo {
+  line-height: 1.8;
+}
+
+/* Etiqueta de formulario pequeña en mayúsculas */
+.form-label-mini {
+  font-size: 0.8rem;
+  letter-spacing: 1px;
+}
+
+/* Acento superior de color en tarjetas */
+.card-top-accent {
+  border-top: 4px solid var(--color-secundario) !important;
+}
+
+/* =========================================
+   BOTÓN FLOTANTE DEL CARRITO (Burbuja)
+========================================= */
+.btn-carrito-flotante {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  width: 65px;
+  height: 65px;
+  z-index: 1050;
+  font-size: 1.5rem;
+}
+
+/* =========================================
+   MEDIA QUERIES (Diseño Responsivo)
+========================================= */
+/* Si la pantalla es menor a 768px (Tablets y celulares) */
+@media (max-width: 768px) {
+  .display-4 {
+    font-size: 2.5rem; /* Achicamos el título principal en móviles */
+  }
+}
