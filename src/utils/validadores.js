@@ -81,3 +81,32 @@ export function validarContacto({ nombre, correo, comentario }) {
     return "El comentario es obligatorio (Máx. 500 caracteres).";
   return "";
 }
+
+// ================== CHECKOUT ==================
+// Devuelve un objeto { campo: mensaje } con los errores encontrados.
+// Objeto vacío = formulario válido.
+export function validarCheckout(datos) {
+  const errores = {};
+  if (!datos.nombre.trim() || datos.nombre.trim().length < 3) {
+    errores.nombre = "Ingresa tu nombre completo (mínimo 3 caracteres).";
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(datos.correo)) {
+    errores.correo = "Ingresa un correo válido.";
+  }
+  if (!datos.direccion.trim()) {
+    errores.direccion = "La dirección de envío es obligatoria.";
+  }
+  if (!datos.ciudad.trim()) {
+    errores.ciudad = "La ciudad es obligatoria.";
+  }
+  if (!/^\d{16}$/.test(datos.tarjeta.replace(/\s/g, ""))) {
+    errores.tarjeta = "La tarjeta debe tener 16 dígitos.";
+  }
+  if (!/^(0[1-9]|1[0-2])\/\d{2}$/.test(datos.vencimiento)) {
+    errores.vencimiento = "Formato MM/AA.";
+  }
+  if (!/^\d{3,4}$/.test(datos.cvv)) {
+    errores.cvv = "CVV inválido.";
+  }
+  return errores;
+}

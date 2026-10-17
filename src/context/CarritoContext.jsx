@@ -10,7 +10,7 @@ import { createContext, useContext, useEffect, useState } from "react";
 const CarritoContext = createContext();
 
 // Cupones válidos migrados desde la EP1
-export const CUPONES = { F1AUDI: 10, NEUBURG2026: 15 };
+const CUPONES = { F1AUDI: 10, NEUBURG2026: 15 };
 
 // Provider: envuelve la app y entrega el estado del carrito a todos los hijos
 export function CarritoProvider({ children }) {
