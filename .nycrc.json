@@ -1,0 +1,19 @@
+{
+  "include": ["src/**/*.js", "src/**/*.jsx"],
+  "exclude": ["src/tests/**", "src/main.jsx"],
+  "extension": [".js", ".jsx"],
+  "parserPlugins": [
+    "jsx",
+    "asyncGenerators",
+    "bigInt",
+    "classProperties",
+    "classPrivateProperties",
+    "classPrivateMethods",
+    "dynamicImport",
+    "importMeta",
+    "numericSeparator",
+    "objectRestSpread",
+    "optionalCatchBinding",
+    "topLevelAwait"
+  ]
+}
