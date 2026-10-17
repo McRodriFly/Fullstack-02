@@ -47,10 +47,10 @@ Ejecuta las **94 pruebas** con **Karma + Jasmine** en Chrome Headless y mide la 
 
 | Métrica de cobertura | Resultado | Mínimo exigido |
 |---|---|---|
-| Sentencias | 100 % | 80 % |
-| Ramas | 100 % | 70 % |
-| Funciones | 100 % | 80 % |
-| Líneas | 100 % | 80 % |
+| Sentencias | 100 % | 90 % |
+| Ramas | 100 % | 90 % |
+| Funciones | 100 % | 90 % |
+| Líneas | 100 % | 90 % |
 
 El reporte navegable queda en `coverage/index.html`. Si la cobertura baja del mínimo, `npm test` falla.
 
