@@ -12,19 +12,22 @@ En esta **Evaluación Parcial 2** se migró la tienda de HTML/CSS/JS vanilla (EP
 |---|---|
 | **React 19** | Componentes, props, estado, contexto |
 | **Vite** | Bundler y servidor de desarrollo |
-| **React Router 7** | Navegación entre vistas (SPA) |
+| **React Router 7** | Navegación entre vistas (SPA), parámetros de ruta y de búsqueda |
 | **Bootstrap 5** | Diseño responsivo (móvil / tablet / escritorio) |
 | **Bootstrap Icons** | Iconografía del panel admin |
 | **Jasmine + Karma** | Pruebas unitarias en navegador real (Chrome Headless) |
-| **React Testing Library** | Renderizado y simulación de eventos en pruebas |
+| **React Testing Library** | Renderizado, `renderHook` y simulación de eventos en pruebas |
+| **karma-coverage + Istanbul** | Medición de cobertura de código |
 | **localStorage** | Persistencia simulada (productos, usuarios, carrito) |
 
 ## 🛠️ Instalación y ejecución
 
+Requisitos: **Node.js 24** (ver `.node-version`) y npm. Se necesita Google Chrome instalado para las pruebas.
+
 ```bash
 # 1. Clonar el repositorio
-git clone https://github.com/<usuario>/audi-f1-store.git
-cd audi-f1-store
+git clone https://github.com/McRodriFly/Fullstack-02.git
+cd Fullstack-02
 
 # 2. Instalar dependencias
 npm install
@@ -40,12 +43,33 @@ npm run dev
 npm test
 ```
 
-Ejecuta las 22 pruebas con **Karma + Jasmine** en Chrome Headless. Resultado esperado: `TOTAL: 22 SUCCESS`.
+Ejecuta las **94 pruebas** con **Karma + Jasmine** en Chrome Headless y mide la cobertura. Resultado esperado: `TOTAL: 94 SUCCESS`.
+
+| Métrica de cobertura | Resultado | Mínimo exigido |
+|---|---|---|
+| Sentencias | 100 % | 80 % |
+| Ramas | 100 % | 70 % |
+| Funciones | 100 % | 80 % |
+| Líneas | 100 % | 80 % |
+
+El reporte navegable queda en `coverage/index.html`. Si la cobertura baja del mínimo, `npm test` falla.
+
+| Archivo de pruebas | Qué prueba |
+|---|---|
+| `validadores.spec.js` | Funciones puras: correo, RUT, contraseña, login, registro, contacto y checkout |
+| `productos.spec.js` | CRUD de la fuente de datos simulada |
+| `CarritoContext.spec.js` | Hook `useCarrito` con `renderHook`, cupones, totales, mocks de `localStorage` y `jasmine.clock()` |
+| `ProductCard.spec.js` | Props, renderizado condicional y spy del evento clic |
+| `Login.spec.js` / `Formularios.spec.js` | Estado de formularios, errores, selects encadenados y redirecciones |
+| `Carrito.spec.js` / `Checkout.spec.js` | Flujo de compra completo: cupones, pago aprobado y rechazado |
+| `Navegacion.spec.js` | Rutas, Navbar responsivo, toast, página 404 y ErrorBoundary |
+| `Admin.spec.js` | Dashboard, CRUD de productos y usuarios, mock de `window.confirm` |
 
 ### 📦 Build de producción
 
 ```bash
 npm run build   # genera la carpeta dist/
+npm run lint    # revisión estática del código (oxlint)
 ```
 
 ## 🗺️ Vistas de la aplicación
@@ -55,7 +79,7 @@ npm run build   # genera la carpeta dist/
 |---|---|
 | `/` | Home — catálogo completo de productos |
 | `/producto/:id` | Detalle de producto con ficha completa |
-| `/categorias` | Productos filtrables por categoría |
+| `/categorias` | Productos filtrables por categoría (`?cat=Gorras`) |
 | `/ofertas` | Solo productos con precio rebajado |
 | `/carrito` | Carrito con cupones de descuento |
 | `/checkout` | Formulario de datos, entrega y pago (validado) |
@@ -85,13 +109,13 @@ npm run build   # genera la carpeta dist/
 
 ```
 src/
-├── components/     # Navbar, Footer, ProductCard, ToastCarrito
+├── components/     # Navbar, Footer, ProductCard, ToastCarrito, ErrorBoundary
 ├── context/        # CarritoContext (estado global del carrito)
 ├── data/           # productos.js (CRUD), ubicacion.js, usuarios.js
 ├── pages/          # Vistas de la tienda
 │   └── admin/      # Panel de administración
 ├── styles/         # CSS migrado de la EP1 + toast
-├── tests/          # Pruebas unitarias (Jasmine + Karma)
+├── tests/          # Pruebas unitarias (Jasmine + Karma) + helpers.js
 └── utils/          # validadores.js (funciones puras)
 ```
 
