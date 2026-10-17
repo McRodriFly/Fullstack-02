@@ -53,6 +53,15 @@ describe("Fuente de datos de productos (CRUD)", () => {
     expect(actualizado.nombre).toContain("Llavero");
   });
 
+  it("ACTUALIZAR: devuelve null si el id no existe", () => {
+    expect(actualizarProducto(999, { precio: 1 })).toBe(null);
+  });
+
+  it("CREAR: con el catálogo vacío el primer producto recibe id 1", () => {
+    localStorage.setItem("audi_f1_productos", "[]");
+    expect(crearProducto({ nombre: "Primero", precio: 1000 }).id).toBe(1);
+  });
+
   it("ELIMINAR: quita un producto del catálogo", () => {
     const eliminado = eliminarProducto(1);
     expect(eliminado).toBe(true);
