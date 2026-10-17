@@ -13,9 +13,17 @@
 }
 
 .carrito-tabla-img {
-  width: 100px;
-  height: 100px;
+  width: 90px;
+  height: 90px;
   object-fit: cover;
+}
+
+/* En celular la imagen se achica para que la fila no se desborde */
+@media (max-width: 575.98px) {
+  .carrito-tabla-img {
+    width: 64px;
+    height: 64px;
+  }
 }
 
 /* --- Burbuja Flotante  --- */

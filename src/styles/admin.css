@@ -7,11 +7,26 @@ body.admin-body {
   background-color: #f4f6f9;
 }
 
-/* Panel lateral de navegación (Sidebar) */
+/* Panel lateral de navegación (Sidebar).
+   En celular se muestra como barra superior con menú desplegable;
+   desde tablet (768px) pasa a ser columna lateral de alto completo. */
 .admin-sidebar {
-  min-height: 100vh;
   background-color: var(--color-principal);
-  border-right: 2px solid var(--color-secundario);
+  border-bottom: 2px solid var(--color-secundario);
+}
+
+@media (min-width: 768px) {
+  .admin-sidebar {
+    min-height: 100vh;
+    border-bottom: none;
+    border-right: 2px solid var(--color-secundario);
+  }
+
+  .admin-sidebar-inner {
+    position: sticky;
+    top: 0;
+    min-height: 100vh;
+  }
 }
 
 /* Enlaces del menú lateral */
@@ -31,9 +46,15 @@ body.admin-body {
   padding-left: 1.5rem; /* Pequeña animación hacia la derecha al pasar el mouse */
 }
 
-/* Área de contenido principal */
+/* Área de contenido principal (menos relleno en celular) */
 .admin-content {
-  padding: 2.5rem;
+  padding: 1rem;
+}
+
+@media (min-width: 768px) {
+  .admin-content {
+    padding: 2.5rem;
+  }
 }
 
 /* Tarjetas de estadísticas (Kpis) */

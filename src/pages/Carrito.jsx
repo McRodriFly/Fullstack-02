@@ -19,6 +19,8 @@ export default function Carrito() {
   // Estado local del input del cupón (gestión de estado: requisito IE2.1.2)
   const [cupon, setCupon] = useState("");
   const [mensajeCupon, setMensajeCupon] = useState("");
+  // Aviso cuando se intenta pagar con el carrito vacío (reemplaza el alert())
+  const [avisoPago, setAvisoPago] = useState("");
   const navigate = useNavigate();
 
   // Aplica el cupón escrito y muestra feedback al usuario
@@ -37,7 +39,7 @@ export default function Carrito() {
   // Botón PAGAR: en la EP2 lleva al nuevo flujo de checkout
   function handlePagar() {
     if (carrito.length === 0) {
-      alert("¡Tu carrito está vacío! Agrega productos antes de pagar.");
+      setAvisoPago("¡Tu carrito está vacío! Agrega productos antes de pagar.");
       return;
     }
     navigate("/checkout");
@@ -63,19 +65,19 @@ export default function Carrito() {
             carrito.map((prod, index) => (
               <div
                 key={`${prod.id}-${index}`}
-                className="d-flex align-items-center mb-3 p-3 bg-white shadow-sm border border-light"
+                className="d-flex flex-wrap align-items-center gap-3 mb-3 p-3 bg-white shadow-sm border border-light"
               >
+                {/* flex-wrap: en celular el precio y el botón bajan a otra línea */}
                 <img
                   src={`/img/${prod.archivo}`}
                   alt={prod.nombre}
-                  className="me-4 border carrito-tabla-img"
-                  style={{ width: "90px", height: "90px", objectFit: "cover" }}
+                  className="border carrito-tabla-img"
                 />
                 <div className="flex-grow-1">
                   <h5 className="mb-1 text-uppercase fw-bold">{prod.nombre}</h5>
                   <p className="text-muted mb-0">{prod.categoria}</p>
                 </div>
-                <div className="text-end me-4">
+                <div className="text-end">
                   <h5 className="fw-bold mb-0 text-danger">{formatearPrecio(prod.precio)}</h5>
                 </div>
                 <button
@@ -152,6 +154,11 @@ export default function Carrito() {
             >
               PAGAR
             </button>
+            {avisoPago && (
+              <div className="alert alert-warning rounded-0 mt-3 mb-0 small" role="alert">
+                {avisoPago}
+              </div>
+            )}
           </div>
         </div>
       </div>
