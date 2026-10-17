@@ -1,25 +1,16 @@
-/* =========================================================
-   CONFIGURACIÓN DE KARMA (entorno de pruebas)
-   - Jasmine: framework de pruebas (describe/it/expect/spies)
-   - karma-esbuild: transpila JSX y módulos ESM de React
-   - esbuild-plugin-istanbul: instrumenta el código de src/
-     para medir cobertura (qué líneas ejecutan las pruebas)
-   - karma-coverage: genera el reporte de cobertura
-   - ChromeHeadless: navegador real sin ventana (DOM real)
-   Uso: npm test  →  reporte HTML en coverage/index.html
-========================================================= */
+/* Pruebas unitarias: Jasmine sobre Chrome Headless, specs transpilados con
+   esbuild y cobertura con Istanbul (reporte en coverage/index.html). */
 const { esbuildPluginIstanbul } = require("esbuild-plugin-istanbul");
 
-// Instrumenta solo el código de la app (src/), dejando fuera las pruebas
-// (src/tests/). El plugin ya ignora node_modules. La opción de JSX para
-// el instrumentador está en .nycrc.json (parserPlugins: ["jsx"]).
+// Instrumenta solo src/ y deja fuera src/tests/. El plugin ya ignora node_modules;
+// el soporte de JSX del instrumentador está en .nycrc.json (parserPlugins).
 const ES_PRUEBA = /[\\/]src[\\/]tests[\\/]/;
 
 function soloCodigoApp(plugin) {
   return {
     name: plugin.name,
     setup(build) {
-      // Envolvemos onLoad: si el archivo es una prueba, no se instrumenta
+      // esbuild no acepta lookahead en los filtros, así que las pruebas se excluyen aquí.
       return plugin.setup({
         ...build,
         onLoad: (opciones, callback) =>
@@ -38,20 +29,17 @@ const istanbulJsx = soloCodigoApp(
 
 module.exports = function (config) {
   config.set({
-    // Framework de pruebas
     frameworks: ["jasmine"],
 
     files: [
-      // Archivos de prueba (specs)
       { pattern: "src/tests/*.spec.js", watched: false },
-      // Imágenes de public/ servidas por Karma (evita errores 404 en <img>)
+      // Se sirven pero no se cargan como script; evita 404 en los <img> renderizados.
       { pattern: "public/img/*", watched: false, included: false, served: true },
     ],
 
-    // Las rutas /img/... de los componentes apuntan a public/img
+    // Karma sirve los archivos bajo /base/; los componentes piden /img/...
     proxies: { "/img/": "/base/public/img/" },
 
-    // karma-esbuild transpila los specs (JSX, imports ESM) al vuelo
     preprocessors: {
       "src/tests/*.spec.js": ["esbuild"],
     },
@@ -63,7 +51,6 @@ module.exports = function (config) {
       "karma-coverage",
     ],
 
-    // Opciones de esbuild: JSX automático de React 19 + instrumentación
     esbuild: {
       jsx: "automatic",
       target: "es2020",
@@ -74,19 +61,18 @@ module.exports = function (config) {
 
     browsers: ["ChromeHeadless"],
 
-    // progress: avance de pruebas · coverage: reporte de cobertura
     reporters: ["progress", "coverage"],
 
     coverageReporter: {
       dir: "coverage",
       reporters: [
-        { type: "html", subdir: "." },        // reporte navegable
-        { type: "text-summary" },             // resumen en consola
-        { type: "text" },                     // detalle por archivo en consola
+        { type: "html", subdir: "." },
+        { type: "text-summary" },
+        { type: "text" },
       ],
-      // Umbral mínimo: si la cobertura baja de esto, npm test falla
+      // npm test falla si la cobertura global baja de estos mínimos.
       check: {
-        global: { statements: 80, branches: 70, functions: 80, lines: 80 },
+        global: { statements: 90, branches: 90, functions: 90, lines: 90 },
       },
     },
 

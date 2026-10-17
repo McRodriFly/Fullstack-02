@@ -1,9 +1,4 @@
-/* =========================================================
-   PRUEBAS DE VALIDADORES (lógica pura)
-   Abarca: correo con dominios válidos, RUT módulo 11,
-   contraseña y los validadores completos de login/registro/
-   contacto/checkout.
-========================================================= */
+/* Validadores puros: correo, RUT, contraseña y formularios (login, registro, contacto, checkout). */
 import {
   rutEsValido,
   correoEsValido,
@@ -30,12 +25,10 @@ describe("Validador de correo", () => {
 
 describe("Validador de RUT chileno (módulo 11)", () => {
   it("acepta un RUT con dígito verificador correcto", () => {
-    // 111111111: el dígito verificador 1 es correcto para el cuerpo 11111111
     expect(rutEsValido("111111111")).toBe(true);
   });
 
   it("acepta RUT con dígito verificador K (mayúscula o minúscula)", () => {
-    // 10000013-K: suma 2*3+1*4... da resto 10 → dígito K
     expect(rutEsValido("10000013K")).toBe(true);
     expect(rutEsValido("10000013k")).toBe(true);
   });

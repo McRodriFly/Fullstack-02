@@ -1,6 +1,5 @@
-/* Mantenedor de Productos: CRUD completo sobre la fuente de datos
-   simulada (data/productos.js) con formulario de crear/editar y tabla.
-   Vista /admin/productos — requisito EP2: conectar persistencia con React. */
+/* /admin/productos — CRUD de productos sobre data/productos.js.
+   El mismo formulario sirve para crear y editar: idEditando === null es "crear". */
 import { useState } from "react";
 import {
   obtenerProductos,
@@ -11,7 +10,6 @@ import {
   formatearPrecio,
 } from "../../data/productos";
 
-// Estado inicial del formulario (vacío = modo "crear")
 const FORM_INICIAL = {
   nombre: "",
   categoria: "",
@@ -23,11 +21,9 @@ const FORM_INICIAL = {
 };
 
 export default function AdminProductos() {
-  // Estado del listado: se recarga desde la fuente de datos tras cada cambio
   const [productos, setProductos] = useState(() => obtenerProductos());
   const [categorias] = useState(() => obtenerCategorias());
   const [form, setForm] = useState(FORM_INICIAL);
-  // idEditando: null = creando; número = editando ese producto
   const [idEditando, setIdEditando] = useState(null);
   const [error, setError] = useState("");
 
@@ -40,7 +36,6 @@ export default function AdminProductos() {
     setProductos(obtenerProductos());
   }
 
-  // Cargar un producto en el formulario para editarlo
   function handleEditar(producto) {
     setIdEditando(producto.id);
     setForm({
@@ -71,7 +66,6 @@ export default function AdminProductos() {
 
   function handleSubmit(e) {
     e.preventDefault();
-    // Validación básica del mantenedor
     if (!form.nombre.trim()) return setError("El nombre es obligatorio.");
     if (!form.categoria) return setError("Selecciona una categoría.");
     if (Number(form.precio) <= 0) return setError("El precio debe ser mayor a 0.");
@@ -100,7 +94,6 @@ export default function AdminProductos() {
         <h1 className="h2 fw-bold text-uppercase">Inventario</h1>
       </header>
 
-      {/* Formulario crear/editar */}
       <div className="card border-0 shadow-sm rounded-0 mb-5">
         <div className="card-header bg-dark text-white rounded-0 py-3">
           <h5 className="mb-0 fw-bold text-uppercase small">
@@ -162,7 +155,6 @@ export default function AdminProductos() {
                   <label className="form-check-label fw-bold" htmlFor="oferta">¿En oferta?</label>
                 </div>
               </div>
-              {/* El precio de oferta solo se muestra si el checkbox está activo */}
               {form.oferta && (
                 <div className="col-md-2">
                   <label className="form-label text-uppercase fw-bold small">Precio oferta</label>
@@ -185,7 +177,6 @@ export default function AdminProductos() {
         </div>
       </div>
 
-      {/* Tabla de productos */}
       <h5 className="fw-bold text-uppercase mb-3 text-muted">
         <i className="bi bi-list-task me-2"></i>Productos registrados
       </h5>

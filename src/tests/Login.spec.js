@@ -1,8 +1,4 @@
-/* =========================================================
-   PRUEBAS DEL COMPONENTE Login (estado + eventos)
-   Abarca: gestión del estado del formulario y renderizado
-   condicional del mensaje de error al enviar datos inválidos.
-========================================================= */
+/* Login: estado controlado del formulario y mensajes de error. */
 import { render, screen, fireEvent, cleanup } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import Login from "../pages/Login";
@@ -24,19 +20,15 @@ describe("Componente Login", () => {
     renderLogin();
     const inputCorreo = document.getElementById("correo");
     fireEvent.change(inputCorreo, { target: { name: "correo", value: "alumno@duoc.cl" } });
-    // El estado controlado actualizó el valor del input
     expect(inputCorreo.value).toBe("alumno@duoc.cl");
   });
 
   it("muestra el mensaje de error SOLO cuando la validación falla (renderizado condicional)", () => {
     const { container } = renderLogin();
-    // Antes de enviar: no hay mensaje de error
     expect(container.querySelector(".alert-danger")).toBe(null);
 
-    // Enviamos el formulario vacío
     fireEvent.click(screen.getByText("INGRESAR"));
 
-    // Ahora sí aparece el error por correo obligatorio
     expect(screen.getByText(/correo es obligatorio/i)).toBeTruthy();
   });
 

@@ -1,12 +1,10 @@
-/* Dashboard del admin: KPIs calculados en vivo desde la fuente de datos
-   (productos activos, ofertas, stock crítico). Vista /admin */
+/* /admin — KPIs del inventario y alerta de stock crítico (< 5 unidades). */
 import { useState } from "react";
 import { obtenerProductos, formatearPrecio } from "../../data/productos";
 
 export default function AdminHome() {
   const [productos] = useState(() => obtenerProductos());
 
-  // KPIs calculados dinámicamente a partir de los datos reales
   const totalProductos = productos.length;
   const totalOfertas = productos.filter((p) => p.oferta).length;
   const valorInventario = productos.reduce((acc, p) => acc + p.precio * p.stock, 0);
@@ -54,7 +52,6 @@ export default function AdminHome() {
         </div>
       </div>
 
-      {/* Alerta de stock: solo aparece si hay productos con menos de 5 unidades */}
       {stockCritico.length > 0 && (
         <div className="alert alert-danger rounded-0 border-0 shadow-sm p-4 d-flex align-items-center" role="alert">
           <i className="bi bi-exclamation-triangle-fill fs-3 me-3"></i>

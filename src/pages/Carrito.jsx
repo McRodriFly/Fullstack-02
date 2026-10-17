@@ -1,6 +1,6 @@
-/* Vista del carrito de compras (/carrito).
-   Migración completa de views_tienda/carrito.html + la lógica de carrito.js,
-   ahora con estado (useState) para el cupón y el contexto global del carrito. */
+/* /carrito — lista de ítems, cupón de descuento y resumen.
+   Los ítems y totales vienen de CarritoContext; aquí solo vive el estado del
+   formulario del cupón y los mensajes de la vista. */
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useCarrito } from "../context/CarritoContext";
@@ -16,14 +16,11 @@ export default function Carrito() {
     aplicarCupon,
   } = useCarrito();
 
-  // Estado local del input del cupón (gestión de estado: requisito IE2.1.2)
   const [cupon, setCupon] = useState("");
   const [mensajeCupon, setMensajeCupon] = useState("");
-  // Aviso cuando se intenta pagar con el carrito vacío (reemplaza el alert())
   const [avisoPago, setAvisoPago] = useState("");
   const navigate = useNavigate();
 
-  // Aplica el cupón escrito y muestra feedback al usuario
   function handleAplicarCupon() {
     if (carrito.length === 0) {
       setMensajeCupon("Agrega productos antes de aplicar un cupón.");
@@ -36,7 +33,6 @@ export default function Carrito() {
     }
   }
 
-  // Botón PAGAR: en la EP2 lleva al nuevo flujo de checkout
   function handlePagar() {
     if (carrito.length === 0) {
       setAvisoPago("¡Tu carrito está vacío! Agrega productos antes de pagar.");
@@ -50,9 +46,7 @@ export default function Carrito() {
       <h2 className="fw-bold mb-4">MI CARRITO DE COMPRAS</h2>
 
       <div className="row g-4">
-        {/* Columna izquierda: listado de productos */}
         <div className="col-lg-8">
-          {/* Renderizado condicional: mensaje si el carrito está vacío */}
           {carrito.length === 0 ? (
             <div className="alert alert-secondary text-center p-5 rounded-0 border-0">
               <h4 className="text-uppercase fw-bold mb-3">Tu carrito está vacío</h4>
@@ -67,7 +61,7 @@ export default function Carrito() {
                 key={`${prod.id}-${index}`}
                 className="d-flex flex-wrap align-items-center gap-3 mb-3 p-3 bg-white shadow-sm border border-light"
               >
-                {/* flex-wrap: en celular el precio y el botón bajan a otra línea */}
+                {/* flex-wrap: en pantallas chicas precio y botón pasan a la línea siguiente */}
                 <img
                   src={`/img/${prod.archivo}`}
                   alt={prod.nombre}
@@ -91,7 +85,6 @@ export default function Carrito() {
           )}
         </div>
 
-        {/* Columna derecha: resumen del pedido */}
         <div className="col-lg-4">
           <div className="card border-0 shadow-sm bg-light p-4 carrito-resumen-card">
             <h5 className="fw-bold mb-4 text-dark">RESUMEN DEL PEDIDO</h5>
@@ -103,7 +96,6 @@ export default function Carrito() {
               </span>
             </div>
 
-            {/* Cupón de descuento */}
             <div className="mb-2">
               <label htmlFor="cupon" className="form-label text-muted">
                 Ingrese el cupón de descuento
@@ -128,10 +120,8 @@ export default function Carrito() {
               </div>
             </div>
 
-            {/* Feedback del cupón (solo se muestra cuando hay mensaje) */}
             {mensajeCupon && <p className="small text-muted mb-3">{mensajeCupon}</p>}
 
-            {/* Línea de descuento, solo visible si hay cupón aplicado */}
             {descuento > 0 && (
               <div className="d-flex justify-content-between mb-3 text-success">
                 <span>Descuento ({descuento}%):</span>

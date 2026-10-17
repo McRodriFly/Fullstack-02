@@ -1,20 +1,16 @@
-/* =========================================================
-   VALIDADORES (funciones puras)
-   Migrados de js/validaciones.js y js/registro.js de la EP1.
-   Al ser funciones puras (sin DOM) son fáciles de probar
-   con pruebas unitarias en Jasmine/Karma.
-========================================================= */
-
+/* Validaciones de formularios como funciones puras (sin DOM ni estado).
+   Los validadores de formulario devuelven "" si todo es válido o el
+   primer mensaje de error; validarCheckout devuelve un error por campo. */
 const DOMINIOS_VALIDOS = ["@duoc.cl", "@profesor.duoc.cl", "@gmail.com"];
 
-// Correo permitido solo si termina en un dominio válido (regla de la EP1)
+// Solo se aceptan estos dominios; máximo 100 caracteres.
 export function correoEsValido(correo) {
   const limpio = correo.trim();
   if (!limpio || limpio.length > 100) return false;
   return DOMINIOS_VALIDOS.some((dominio) => limpio.endsWith(dominio));
 }
 
-// Valida RUT chileno sin puntos ni guión (módulo 11)
+// RUT sin puntos ni guion, validado con el dígito verificador (módulo 11).
 export function rutEsValido(rut) {
   const limpio = rut.trim().toUpperCase();
   if (!/^[0-9]+[0-9K]$/.test(limpio) || limpio.length < 7 || limpio.length > 9) return false;
@@ -35,13 +31,10 @@ export function rutEsValido(rut) {
   return dvEsperado === dvIngresado;
 }
 
-// Contraseña entre 4 y 10 caracteres (regla de la EP1)
 export function passwordEsValida(pass) {
   return pass.length >= 4 && pass.length <= 10;
 }
 
-// ================== LOGIN ==================
-// Devuelve "" si todo OK, o el mensaje de error correspondiente.
 export function validarLogin({ correo, password }) {
   const correoLimpio = correo.trim();
   if (!correoLimpio) return "El correo es obligatorio.";
@@ -54,7 +47,6 @@ export function validarLogin({ correo, password }) {
   return "";
 }
 
-// ================== REGISTRO ==================
 export function validarRegistro({ rut, correo, nombre, apellidos, password, passwordConf }) {
   if (!rut.trim() || !rutEsValido(rut))
     return "RUT inválido. Ej: 11111111-1 (sin puntos ni guión: 111111111).";
@@ -71,7 +63,6 @@ export function validarRegistro({ rut, correo, nombre, apellidos, password, pass
   return "";
 }
 
-// ================== CONTACTO ==================
 export function validarContacto({ nombre, correo, comentario }) {
   if (!nombre.trim() || nombre.trim().length > 100)
     return "El nombre es obligatorio (Máx. 100 caracteres).";
@@ -82,9 +73,7 @@ export function validarContacto({ nombre, correo, comentario }) {
   return "";
 }
 
-// ================== CHECKOUT ==================
-// Devuelve un objeto { campo: mensaje } con los errores encontrados.
-// Objeto vacío = formulario válido.
+// { campo: mensaje } por cada campo inválido; {} si el formulario es válido.
 export function validarCheckout(datos) {
   const errores = {};
   if (!datos.nombre.trim() || datos.nombre.trim().length < 3) {

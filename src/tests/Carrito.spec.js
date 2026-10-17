@@ -1,9 +1,4 @@
-/* =========================================================
-   PRUEBAS DE LA VISTA Carrito (/carrito)
-   Abarca: renderizado condicional (vacío / con productos),
-   cupones con feedback, eliminar ítems, totales en el DOM
-   y navegación al checkout.
-========================================================= */
+/* Vista /carrito: estado vacío, cupones, eliminación, totales y navegación al checkout. */
 import { screen, fireEvent, cleanup } from "@testing-library/react";
 import { Routes, Route } from "react-router-dom";
 import Carrito from "../pages/Carrito";
@@ -29,7 +24,6 @@ describe("Vista Carrito", () => {
 
     fireEvent.click(screen.getByText("PAGAR"));
 
-    // En vez de alert() ahora aparece un aviso dentro de la página
     expect(screen.getByRole("alert").textContent).toContain("Agrega productos antes de pagar");
   });
 

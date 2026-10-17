@@ -1,7 +1,4 @@
-/* =========================================================
-   PRUEBAS DE FORMULARIOS: Login (redirección por rol),
-   Registro (selects encadenados región/comuna) y Contacto.
-========================================================= */
+/* Formularios: redirección del login por rol, registro (región/comuna) y contacto. */
 import { screen, fireEvent, cleanup } from "@testing-library/react";
 import { Routes, Route } from "react-router-dom";
 import Login from "../pages/Login";
@@ -9,7 +6,6 @@ import Registro from "../pages/Registro";
 import Contacto from "../pages/Contacto";
 import { renderConTienda } from "./helpers";
 
-// Escribe un valor en el input con ese id
 function escribir(id, value) {
   fireEvent.change(document.getElementById(id), { target: { value } });
 }

@@ -3,11 +3,11 @@ import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import App from "./App.jsx";
 
-// Bootstrap CSS (grilla responsiva y componentes visuales).
-// No se usa el JS de Bootstrap: los menús se abren con estado de React.
+// Solo el CSS de Bootstrap. Los menús colapsables se manejan con estado
+// de React (ver Navbar y AdminLayout), así que no se carga bootstrap.bundle.js.
 import "bootstrap/dist/css/bootstrap.min.css";
 
-// Estilos propios migrados de la EP1 (sobreescriben a Bootstrap por cascada)
+// Íconos y estilos propios: van después de Bootstrap para poder sobrescribirlo.
 import "bootstrap-icons/font/bootstrap-icons.css";
 import "./styles/styles.css";
 import "./styles/carrito.css";

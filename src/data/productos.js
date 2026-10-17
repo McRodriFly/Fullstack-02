@@ -1,14 +1,9 @@
-/* =========================================================
-   FUENTE DE DATOS SIMULADA (actúa como "base de datos")
-   Requisito EP2: archivo JS con datos + funciones CRUD.
-   Persiste en localStorage para simular backend.
-========================================================= */
-
-// Clave usada en localStorage para guardar los productos
+/* Repositorio de productos sobre localStorage (simula el backend).
+   Las vistas usan solo estas funciones; al conectar una API real basta con
+   cambiar la implementación de este archivo. */
 const STORAGE_KEY = "audi_f1_productos";
 
-// Catálogo inicial de la tienda (migrado desde js/carrito.js de la EP1)
-// Se agregan campos nuevos: stock, oferta y precioOferta (para la vista Ofertas)
+// Semilla: se guarda en localStorage la primera vez que se lee el catálogo.
 const productosIniciales = [
   { id: 1, nombre: "Chaqueta Oficial F1", categoria: "Chaquetas", precio: 120000, archivo: "Chaqueta_1.jpeg", stock: 10, oferta: false, precioOferta: 0 },
   { id: 2, nombre: "Conjunto Deportivo F1", categoria: "Ropa", precio: 85000, archivo: "Conjunto_1.jpeg", stock: 15, oferta: true, precioOferta: 69000 },
@@ -24,7 +19,6 @@ const productosIniciales = [
   { id: 12, nombre: "Polera Tipo 2 - C", categoria: "Poleras", precio: 50000, archivo: "Polera_Tipo2_3.jpeg", stock: 7, oferta: false, precioOferta: 0 },
 ];
 
-// --- Carga inicial: si no hay datos en localStorage, sembramos el catálogo ---
 function cargarProductos() {
   const guardados = localStorage.getItem(STORAGE_KEY);
   if (guardados) {
@@ -34,25 +28,22 @@ function cargarProductos() {
   return [...productosIniciales];
 }
 
-// Guarda el arreglo completo en localStorage (persistencia simulada)
 function guardarProductos(productos) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(productos));
 }
 
-/* ================= CRUD ================= */
 
-// LEER: devuelve todos los productos
 export function obtenerProductos() {
   return cargarProductos();
 }
 
-// LEER: devuelve un producto por id (o null si no existe)
+// id puede venir como string desde la URL (useParams).
 export function obtenerProductoPorId(id) {
   const productos = cargarProductos();
   return productos.find((p) => p.id === Number(id)) || null;
 }
 
-// CREAR: agrega un producto nuevo y devuelve el creado (con id asignado)
+// id = máximo actual + 1 (no se reutilizan ids de productos eliminados).
 export function crearProducto(nuevo) {
   const productos = cargarProductos();
   const nuevoId = productos.length > 0 ? Math.max(...productos.map((p) => p.id)) + 1 : 1;
@@ -62,7 +53,7 @@ export function crearProducto(nuevo) {
   return producto;
 }
 
-// ACTUALIZAR: modifica los campos indicados de un producto existente
+// Merge parcial: solo cambia los campos que vienen en `cambios`. null si no existe.
 export function actualizarProducto(id, cambios) {
   const productos = cargarProductos();
   const indice = productos.findIndex((p) => p.id === Number(id));
@@ -72,7 +63,7 @@ export function actualizarProducto(id, cambios) {
   return productos[indice];
 }
 
-// ELIMINAR: quita un producto por id. Devuelve true si lo eliminó.
+// Devuelve false si el id no existía.
 export function eliminarProducto(id) {
   const productos = cargarProductos();
   const filtrados = productos.filter((p) => p.id !== Number(id));
@@ -81,19 +72,16 @@ export function eliminarProducto(id) {
   return true;
 }
 
-/* ============== Utilidades de consulta ============== */
 
-// Devuelve solo los productos marcados como oferta (para la vista Ofertas)
 export function obtenerOfertas() {
   return cargarProductos().filter((p) => p.oferta === true);
 }
 
-// Devuelve la lista de categorías únicas (para la vista Categorías y el admin)
 export function obtenerCategorias() {
   return [...new Set(cargarProductos().map((p) => p.categoria))];
 }
 
-// Formatea precios a CLP, ej: 120000 -> "$120.000"
+// 120000 -> "$120.000"
 export function formatearPrecio(precio) {
   return "$" + Number(precio).toLocaleString("es-CL");
 }

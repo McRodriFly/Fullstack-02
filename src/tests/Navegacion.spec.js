@@ -1,9 +1,5 @@
-/* =========================================================
-   PRUEBAS DE NAVEGACIÓN Y COMPONENTES GLOBALES
-   Abarca: App completa con rutas (Home, detalle, ofertas,
-   categorías con useSearchParams, 404), Navbar (contador y
-   menú responsivo), Toast y ErrorBoundary.
-========================================================= */
+/* App completa: rutas, Navbar (contador y menú móvil), toast, categorías por
+   URL, página 404 y ErrorBoundary. */
 import { render, screen, fireEvent, cleanup } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import App from "../App";
@@ -37,7 +33,6 @@ describe("Navegación de la tienda (App)", () => {
     expect(screen.getByTestId("contador-carrito").textContent).toBe("1");
     expect(screen.getByRole("status").textContent).toContain("añadido al carrito");
 
-    // Botón × del toast lo cierra
     fireEvent.click(screen.getByLabelText("Cerrar notificación"));
     expect(screen.queryByRole("status")).toBe(null);
   });
@@ -58,7 +53,6 @@ describe("Navegación de la tienda (App)", () => {
     expect(menu.classList.contains("show")).toBe(true);
     expect(boton.getAttribute("aria-expanded")).toBe("true");
 
-    // Al elegir una opción el menú se cierra y cambia la página
     fireEvent.click(screen.getByText("Ofertas", { selector: "a" }));
     expect(menu.classList.contains("show")).toBe(false);
     expect(screen.getByText(/precio rebajado/i)).toBeTruthy();
@@ -94,7 +88,6 @@ describe("Navegación de la tienda (App)", () => {
   });
 
   it("Ofertas avisa cuando no hay productos rebajados", () => {
-    // Catálogo sin ofertas guardado en la "base de datos"
     const sinOfertas = [{ ...gorra, oferta: false }];
     localStorage.setItem("audi_f1_productos", JSON.stringify(sinOfertas));
     renderApp("/ofertas");
@@ -148,13 +141,12 @@ describe("Navegación de la tienda (App)", () => {
 describe("ErrorBoundary", () => {
   afterEach(cleanup);
 
-  // Componente que falla a propósito al renderizar
   function ComponenteRoto() {
     throw new Error("falla de prueba");
   }
 
   it("muestra un mensaje amigable cuando un hijo lanza un error", () => {
-    // Mock de console.error: evita ensuciar la salida con el error esperado
+    // React registra el error en consola; se silencia porque es esperado.
     spyOn(console, "error");
 
     render(

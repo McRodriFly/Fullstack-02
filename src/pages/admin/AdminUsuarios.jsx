@@ -1,5 +1,4 @@
-/* Mantenedor de Usuarios: listado, crear y eliminar usuarios simulados.
-   Vista /admin/usuarios */
+/* /admin/usuarios — alta y baja de usuarios sobre data/usuarios.js. */
 import { useState } from "react";
 import { obtenerUsuarios, eliminarUsuario, crearUsuario } from "../../data/usuarios";
 
@@ -34,7 +33,6 @@ export default function AdminUsuarios() {
         <h1 className="h2 fw-bold text-uppercase">Usuarios</h1>
       </header>
 
-      {/* Crear usuario */}
       <div className="card border-0 shadow-sm rounded-0 mb-5">
         <div className="card-header bg-dark text-white rounded-0 py-3">
           <h5 className="mb-0 fw-bold text-uppercase small">
@@ -73,7 +71,6 @@ export default function AdminUsuarios() {
         </div>
       </div>
 
-      {/* Tabla */}
       <div className="table-responsive bg-white shadow-sm border-0 mb-5">
         <table className="table table-hover mb-0 align-middle">
           <thead className="table-dark">

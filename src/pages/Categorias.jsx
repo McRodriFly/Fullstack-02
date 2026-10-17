@@ -1,8 +1,6 @@
-/* Vista de Categorías: separa los productos por categoría con filtro
-   interactivo (vista nueva de la EP2: interactividad mejorada).
-   El filtro activo se guarda en la URL con useSearchParams
-   (ej: /categorias?cat=Gorras), así el enlace se puede compartir
-   y el botón "atrás" del navegador funciona. */
+/* /categorias — catálogo filtrado por categoría.
+   El filtro vive en la URL (?cat=Gorras) con useSearchParams y no en useState:
+   el enlace se puede compartir, sobrevive a un recargo y funciona con "atrás". */
 import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import ProductCard from "../components/ProductCard";
@@ -12,11 +10,10 @@ import { useCarrito } from "../context/CarritoContext";
 export default function Categorias() {
   const [productos] = useState(() => obtenerProductos());
   const [categorias] = useState(() => obtenerCategorias());
-  // Filtro activo leído desde la URL: ?cat=Gorras  (sin ?cat = "todas")
+  // Sin ?cat se muestran todas.
   const [searchParams, setSearchParams] = useSearchParams();
   const categoriaActiva = searchParams.get("cat") || "todas";
 
-  // Cambia el filtro actualizando el parámetro de la URL
   function cambiarCategoria(categoria) {
     setSearchParams(categoria === "todas" ? {} : { cat: categoria });
   }
@@ -26,7 +23,6 @@ export default function Categorias() {
     agregarAlCarrito({ ...producto, precio: precioFinal });
   }
 
-  // Filtrado según la categoría seleccionada
   const productosFiltrados =
     categoriaActiva === "todas"
       ? productos
@@ -39,7 +35,6 @@ export default function Categorias() {
         Explora la colección oficial según el tipo de producto.
       </p>
 
-      {/* Botones de filtro: uno por categoría + "Todas" */}
       <div className="d-flex flex-wrap justify-content-center gap-2 mb-5">
         <button
           className={`btn rounded-0 fw-bold ${categoriaActiva === "todas" ? "btn-danger" : "btn-outline-dark"}`}

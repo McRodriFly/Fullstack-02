@@ -1,15 +1,12 @@
-/* =========================================================
-   CHECKOUT (/checkout): paso de pago de la EP2.
-   El cliente ingresa sus datos, dirección de entrega y pago.
-   Incluye validación de formulario con estado (useState).
-========================================================= */
+/* /checkout — datos de contacto, entrega y pago. El pago es simulado:
+   TARJETA_RECHAZADA lleva a /compra-fallida, cualquier otra tarjeta válida
+   a /compra-exitosa. El resumen viaja en el state de navegación, no en la URL. */
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useCarrito } from "../context/CarritoContext";
 import { formatearPrecio } from "../data/productos";
 import { validarCheckout } from "../utils/validadores";
 
-// Formulario vacío inicial (estado controlado)
 const FORM_INICIAL = {
   nombre: "",
   correo: "",
@@ -21,7 +18,7 @@ const FORM_INICIAL = {
   cvv: "",
 };
 
-// Tarjeta de prueba que simula un pago rechazado (para ver la vista fallida)
+// Tarjeta de prueba para forzar el flujo de pago rechazado.
 const TARJETA_RECHAZADA = "4000000000000002";
 
 export default function Checkout() {
@@ -30,7 +27,7 @@ export default function Checkout() {
   const [errores, setErrores] = useState({});
   const navigate = useNavigate();
 
-  // Si llegan sin productos no tiene sentido pagar
+  // Los hooks van antes de este return: React exige el mismo orden en cada render.
   if (carrito.length === 0) {
     return (
       <section className="container py-5 text-center">
@@ -43,12 +40,11 @@ export default function Checkout() {
     );
   }
 
-  // Actualiza el estado del formulario a medida que el usuario escribe
+  // Un solo handler para todos los inputs: usa el atributo name como clave.
   function handleChange(e) {
     setDatos({ ...datos, [e.target.name]: e.target.value });
   }
 
-  // Al pagar: validamos y simulamos el resultado del pago
   function handlePagar(e) {
     e.preventDefault();
     const nuevosErrores = validarCheckout(datos);
@@ -59,10 +55,9 @@ export default function Checkout() {
     const tarjetaLimpia = datos.tarjeta.replace(/\s/g, "");
 
     if (tarjetaLimpia === TARJETA_RECHAZADA) {
-      // Pago rechazado: NO vaciamos el carrito para que pueda reintentar
+      // Rechazado: se conserva el carrito para reintentar.
       navigate("/compra-fallida", { state: { numeroPedido } });
     } else {
-      // Pago exitoso: vaciamos el carrito y mostramos el resumen
       const resumen = { numeroPedido, total, items: carrito.length, datos };
       vaciarCarrito();
       navigate("/compra-exitosa", { state: resumen });
@@ -75,7 +70,6 @@ export default function Checkout() {
 
       <form onSubmit={handlePagar} noValidate>
         <div className="row g-4">
-          {/* Columna izquierda: datos del cliente y pago */}
           <div className="col-lg-7">
             <div className="card border-0 shadow-sm p-4 mb-4">
               <h5 className="fw-bold mb-3">DATOS DE CONTACTO</h5>
@@ -171,7 +165,6 @@ export default function Checkout() {
             </div>
           </div>
 
-          {/* Columna derecha: resumen de la compra */}
           <div className="col-lg-5">
             <div className="card border-0 shadow-sm bg-light p-4 carrito-resumen-card">
               <h5 className="fw-bold mb-4 text-dark">RESUMEN ({carrito.length} ítems)</h5>

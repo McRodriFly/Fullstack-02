@@ -1,5 +1,4 @@
-/* Página 404: se muestra cuando la URL no coincide con ninguna ruta
-   (Route path="*" en App.jsx). Usa useLocation para mostrar la ruta pedida. */
+/* Página 404 (Route path="*" en App.jsx). */
 import { Link, useLocation } from "react-router-dom";
 
 export default function NoEncontrado() {

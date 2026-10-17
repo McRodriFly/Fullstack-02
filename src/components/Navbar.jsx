@@ -1,13 +1,10 @@
-/* NavBar de la tienda: migración del <nav> de la EP1 a componente React.
-   - NavLink resalta la ruta activa.
-   - useCarrito() entrega la cantidad de productos para el contador.
-   - El menú hamburguesa (celular) se abre/cierra con estado de React
-     (menuAbierto) en vez del JavaScript de Bootstrap. */
+/* Menú principal de la tienda. El colapso en pantallas < lg se maneja con el
+   estado menuAbierto (clase "show" de Bootstrap) en vez de data-bs-toggle,
+   para que React controle el DOM y el comportamiento sea testeable. */
 import { useState } from "react";
 import { Link, NavLink } from "react-router-dom";
 import { useCarrito } from "../context/CarritoContext";
 
-// Enlaces del menú: se recorren con map() para no repetir JSX
 const ENLACES = [
   { ruta: "/", texto: "Home" },
   { ruta: "/categorias", texto: "Categorías" },
@@ -20,10 +17,9 @@ const ENLACES = [
 
 export default function Navbar() {
   const { cantidad } = useCarrito();
-  // Estado local: si el menú está desplegado en pantallas pequeñas
   const [menuAbierto, setMenuAbierto] = useState(false);
 
-  // Al navegar a otra página cerramos el menú
+  // Se llama en cada enlace para que el menú móvil se cierre al navegar.
   function cerrarMenu() {
     setMenuAbierto(false);
   }
@@ -35,7 +31,6 @@ export default function Navbar() {
           AUDI <span className="text-danger">F1</span> STORE
         </Link>
 
-        {/* Botón hamburguesa: solo visible bajo 992px (navbar-expand-lg) */}
         <button
           className="navbar-toggler"
           type="button"
@@ -47,7 +42,6 @@ export default function Navbar() {
           <span className="navbar-toggler-icon"></span>
         </button>
 
-        {/* La clase "show" de Bootstrap despliega el menú colapsado */}
         <div className={`collapse navbar-collapse ${menuAbierto ? "show" : ""}`} id="menuTienda">
           <ul className="navbar-nav ms-auto mb-2 mb-lg-0">
             {ENLACES.map((enlace) => (
@@ -57,12 +51,10 @@ export default function Navbar() {
                 </NavLink>
               </li>
             ))}
-            {/* Carrito con contador: estado global gracias al contexto */}
             <li className="nav-item">
               <NavLink className="nav-link" to="/carrito" onClick={cerrarMenu}>
                 🛒{" "}
-                {/* key={cantidad}: al cambiar la key React vuelve a crear el
-                    <span>, lo que reinicia la animación CSS de "pulso" */}
+                {/* key={cantidad} fuerza a remontar el <span> y así reinicia la animación badge-pulso */}
                 <span
                   key={cantidad}
                   className="badge bg-danger badge-contador"

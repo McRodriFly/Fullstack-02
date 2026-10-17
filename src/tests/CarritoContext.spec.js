@@ -1,15 +1,9 @@
-/* =========================================================
-   PRUEBAS DEL HOOK useCarrito / CarritoContext (estado global)
-   Abarca: estado inicial, agregar/eliminar, cupones, totales,
-   persistencia en localStorage y el toast que se oculta solo.
-   Técnicas: renderHook (probar un hook sin UI), spies sobre
-   localStorage y jasmine.clock() para simular el paso del tiempo.
-========================================================= */
+/* Hook useCarrito probado sin UI con renderHook: carrito, cupones, totales,
+   persistencia en localStorage y temporizador del toast. */
 import { renderHook, act, cleanup } from "@testing-library/react";
 import { CarritoProvider, useCarrito } from "../context/CarritoContext";
 import { gorra, conjunto, guardarCarrito } from "./helpers";
 
-// Wrapper: el hook necesita estar dentro del Provider
 function wrapper({ children }) {
   return <CarritoProvider>{children}</CarritoProvider>;
 }
@@ -30,7 +24,6 @@ describe("Hook useCarrito (CarritoContext)", () => {
   });
 
   it("MOCK: lee el carrito guardado usando localStorage.getItem", () => {
-    // Spy que reemplaza getItem y devuelve un carrito simulado
     const spyGet = spyOn(Storage.prototype, "getItem").and.returnValue(
       JSON.stringify([gorra, conjunto])
     );
@@ -42,7 +35,6 @@ describe("Hook useCarrito (CarritoContext)", () => {
   });
 
   it("agregarAlCarrito suma el producto y lo persiste con setItem", () => {
-    // callThrough: espía la llamada pero deja que se guarde de verdad
     const spySet = spyOn(Storage.prototype, "setItem").and.callThrough();
     const { result } = montarHook();
 
@@ -107,7 +99,7 @@ describe("Hook useCarrito (CarritoContext)", () => {
   });
 
   describe("toast de confirmación", () => {
-    // jasmine.clock() simula el reloj: no esperamos 2,5 s reales
+    // Reloj falso: tick() avanza el tiempo sin esperar los 2,5 s reales.
     beforeEach(() => jasmine.clock().install());
     afterEach(() => jasmine.clock().uninstall());
 

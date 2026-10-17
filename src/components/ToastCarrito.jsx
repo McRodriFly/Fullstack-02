@@ -1,12 +1,10 @@
-/* Toast flotante de confirmación al agregar productos.
-   Reemplaza los alert() del navegador de la EP1:
-   aparece abajo a la derecha y se oculta solo a los 2,5 s. */
+/* Notificación flotante al agregar productos. El mensaje y su temporizador
+   viven en CarritoContext; este componente solo lo dibuja. */
 import { useCarrito } from "../context/CarritoContext";
 
 export default function ToastCarrito() {
   const { toast, cerrarToast } = useCarrito();
 
-  // Renderizado condicional: sin mensaje no se muestra nada
   if (!toast) return null;
 
   return (

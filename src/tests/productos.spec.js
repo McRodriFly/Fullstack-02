@@ -1,9 +1,4 @@
-/* =========================================================
-   PRUEBAS DE LA FUENTE DE DATOS (CRUD de productos.js)
-   Abarca: Crear, Leer, Actualizar y Eliminar + consultas.
-   Se usa localStorage (mock de la "base de datos") que se
-   limpia antes de cada prueba para independencia.
-========================================================= */
+/* Repositorio de productos: CRUD, casos límite, ofertas y formato de precio. */
 import {
   obtenerProductos,
   obtenerProductoPorId,
@@ -15,7 +10,6 @@ import {
 } from "../data/productos";
 
 describe("Fuente de datos de productos (CRUD)", () => {
-  // Antes de cada prueba limpiamos el almacenamiento para partir de cero
   beforeEach(() => {
     localStorage.clear();
   });

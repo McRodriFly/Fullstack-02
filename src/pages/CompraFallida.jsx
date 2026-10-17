@@ -1,5 +1,4 @@
-/* Vista de compra fallida: se muestra cuando el pago es rechazado.
-   El carrito NO se vacía para que el cliente pueda reintentar (EP2). */
+/* /compra-fallida — pago rechazado. El carrito se conserva para reintentar. */
 import { Link, useLocation } from "react-router-dom";
 
 export default function CompraFallida() {

@@ -1,9 +1,4 @@
-/* =========================================================
-   PRUEBAS DEL FLUJO DE PAGO: Checkout → Compra exitosa / fallida
-   Abarca: validación del formulario (errores en el DOM),
-   pago aprobado (vacía el carrito y muestra el resumen) y
-   pago rechazado (conserva el carrito).
-========================================================= */
+/* Flujo de pago: validación por campo, pago aprobado, rechazado y cupón aplicado. */
 import { screen, fireEvent, cleanup } from "@testing-library/react";
 import { Routes, Route } from "react-router-dom";
 import Checkout from "../pages/Checkout";
@@ -23,7 +18,6 @@ function renderFlujo() {
   );
 }
 
-// Completa el formulario con datos válidos (la tarjeta es configurable)
 function llenarFormulario({ tarjeta = "4242 4242 4242 4242", entrega = "despacho" } = {}) {
   const valores = {
     nombre: "Carlos Sainz",

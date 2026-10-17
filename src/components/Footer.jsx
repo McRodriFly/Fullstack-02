@@ -1,6 +1,4 @@
-/* Footer de la tienda: componente simple y reutilizable (misma marca EP1). */
-
-// El año se calcula una sola vez al cargar la app (no en cada render)
+// Fuera del componente: new Date() en el render es impuro (regla react/purity).
 const ANIO_ACTUAL = new Date().getFullYear();
 
 export default function Footer() {

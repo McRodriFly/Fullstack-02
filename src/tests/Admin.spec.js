@@ -1,10 +1,4 @@
-/* =========================================================
-   PRUEBAS DEL PANEL DE ADMINISTRACIÓN
-   Abarca: KPIs del dashboard, alerta de stock crítico, CRUD de
-   productos y usuarios desde la interfaz, menú responsivo.
-   Mocks: window.confirm se reemplaza con un spy para simular
-   que el usuario acepta o cancela sin abrir el diálogo real.
-========================================================= */
+/* Panel de administración: KPIs, stock crítico, menú móvil y CRUD de productos y usuarios. */
 import { screen, fireEvent, cleanup } from "@testing-library/react";
 import { Routes, Route } from "react-router-dom";
 import AdminLayout from "../pages/admin/AdminLayout";
@@ -28,7 +22,7 @@ function renderAdmin(ruta = "/admin") {
   );
 }
 
-// Escribe en un campo del formulario buscándolo por su atributo name
+// Los inputs del admin no tienen label asociado, así que se buscan por name.
 function escribir(container, name, value) {
   fireEvent.change(container.querySelector(`[name="${name}"]`), { target: { value } });
 }
@@ -41,7 +35,6 @@ describe("Admin: dashboard y layout", () => {
     renderAdmin("/admin");
     expect(screen.getByText("Productos activos").parentElement.textContent).toContain("12");
     expect(screen.getByText("Productos en oferta").parentElement.textContent).toContain("4");
-    // Sin productos bajo 5 unidades no hay alerta
     expect(screen.queryByRole("alert")).toBe(null);
   });
 
@@ -60,7 +53,6 @@ describe("Admin: dashboard y layout", () => {
     fireEvent.click(screen.getByText("MENÚ"));
     expect(menu.classList.contains("d-flex")).toBe(true);
 
-    // Elegir una opción cierra el menú y navega
     fireEvent.click(screen.getByText("Mantenedor Usuarios"));
     expect(menu.classList.contains("d-none")).toBe(true);
     expect(screen.getByText("Usuarios")).toBeTruthy();

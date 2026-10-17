@@ -1,6 +1,4 @@
-/* Usuarios simulados del admin (misma idea que productos.js pero simple):
-   listado en memoria + localStorage, con listar y eliminar. */
-
+/* Repositorio de usuarios sobre localStorage, mismo patrón que productos.js. */
 const STORAGE_KEY = "audi_f1_usuarios";
 
 const usuariosIniciales = [

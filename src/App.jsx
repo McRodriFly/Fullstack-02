@@ -1,9 +1,3 @@
-/* =========================================================
-   APP PRINCIPAL
-   - Envuelve toda la app con el CarritoProvider (estado global)
-   - Define las rutas de navegación (flujo de páginas de la EP2)
-   - ErrorBoundary evita que un error deje la página en blanco
-========================================================= */
 import { Routes, Route, useLocation } from "react-router-dom";
 import { CarritoProvider } from "./context/CarritoContext";
 import Navbar from "./components/Navbar";
@@ -30,20 +24,19 @@ import AdminProductos from "./pages/admin/AdminProductos";
 import AdminUsuarios from "./pages/admin/AdminUsuarios";
 
 export default function App() {
-  // El panel admin tiene su propio layout (sidebar), sin navbar/footer de tienda
+  // /admin usa su propio layout con sidebar, sin el navbar ni el footer de la tienda.
   const { pathname } = useLocation();
   const esAdmin = pathname.startsWith("/admin");
 
   return (
     <CarritoProvider>
-      {/* d-flex + min-vh-100 para que el footer quede siempre abajo */}
+      {/* min-vh-100 + flex-grow-1 en <main>: el footer queda abajo aunque haya poco contenido */}
       <div className="d-flex flex-column min-vh-100">
         {!esAdmin && <Navbar />}
         <main className="flex-grow-1">
-          {/* key={pathname}: al cambiar de página el ErrorBoundary se reinicia */}
+          {/* key={pathname} remonta el boundary al navegar, así un error no queda pegado en otras rutas */}
           <ErrorBoundary key={pathname}>
             <Routes>
-              {/* Ruta principal: catálogo */}
               <Route path="/" element={<Home />} />
               <Route path="/producto/:id" element={<DetalleProducto />} />
               <Route path="/categorias" element={<Categorias />} />
@@ -53,7 +46,7 @@ export default function App() {
               <Route path="/contacto" element={<Contacto />} />
               <Route path="/login" element={<Login />} />
               <Route path="/registro" element={<Registro />} />
-              {/* Panel de administración: rutas anidadas con sidebar propio */}
+              {/* Rutas anidadas: AdminLayout renderiza cada subruta en su <Outlet /> */}
               <Route path="/admin" element={<AdminLayout />}>
                 <Route index element={<AdminHome />} />
                 <Route path="productos" element={<AdminProductos />} />
@@ -63,13 +56,12 @@ export default function App() {
               <Route path="/checkout" element={<Checkout />} />
               <Route path="/compra-exitosa" element={<CompraExitosa />} />
               <Route path="/compra-fallida" element={<CompraFallida />} />
-              {/* Ruta 404 */}
               <Route path="*" element={<NoEncontrado />} />
             </Routes>
           </ErrorBoundary>
         </main>
         {!esAdmin && <Footer />}
-        {/* Toast flotante al agregar productos (visible desde cualquier página) */}
+        {/* Fuera de <Routes> para que el toast se vea en cualquier página */}
         <ToastCarrito />
       </div>
     </CarritoProvider>

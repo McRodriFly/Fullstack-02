@@ -1,5 +1,4 @@
-/* Vista Blog / Noticias F1: tarjetas de noticias migradas de la EP1.
-   Las noticias viven en un arreglo de datos local (fácil de extender). */
+/* /blog — noticias del equipo. Los datos están en NOTICIAS para agregar entradas sin tocar el JSX. */
 import { useState } from "react";
 
 const NOTICIAS = [
@@ -24,7 +23,6 @@ const NOTICIAS = [
 ];
 
 export default function Blog() {
-  // Las noticias se gestionan como datos (estado), no hardcodeadas en el JSX
   const [noticias] = useState(NOTICIAS);
 
   return (

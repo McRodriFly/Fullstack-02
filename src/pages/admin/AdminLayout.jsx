@@ -1,18 +1,12 @@
-/* Layout del panel de administración: sidebar + contenido.
-   Las sub-vistas (/admin, /admin/productos, /admin/usuarios) se
-   renderizan dentro del <Outlet />. Migrado de views_admin/*.html
-
-   Responsivo: en celular el sidebar se convierte en una barra superior
-   con un botón "MENÚ" que abre/cierra los enlaces (estado menuAbierto).
-   Desde 768px (md) los enlaces siempre están visibles en la columna lateral. */
+/* Layout de /admin: sidebar + <Outlet /> donde se renderiza cada subruta.
+   Bajo md el sidebar pasa a barra superior y los enlaces se muestran con el
+   botón MENÚ (estado menuAbierto); desde md siempre están visibles. */
 import { useState } from "react";
 import { NavLink, Outlet, Link } from "react-router-dom";
 
 export default function AdminLayout() {
-  // Estado local: si el menú está desplegado en pantallas pequeñas
   const [menuAbierto, setMenuAbierto] = useState(false);
 
-  // Al elegir una opción en celular, cerramos el menú
   function cerrarMenu() {
     setMenuAbierto(false);
   }
@@ -20,7 +14,6 @@ export default function AdminLayout() {
   return (
     <div className="container-fluid">
       <div className="row">
-        {/* Sidebar */}
         <nav className="col-md-3 col-lg-2 admin-sidebar px-0 bg-dark">
           <div className="admin-sidebar-inner pt-3 pt-md-4 d-flex flex-column">
             <div className="d-flex justify-content-between align-items-center px-3 mb-md-5">
@@ -30,7 +23,6 @@ export default function AdminLayout() {
                 </h4>
                 <p className="text-secondary small mb-0">PANEL DE CONTROL</p>
               </div>
-              {/* Botón solo visible en celular (d-md-none) */}
               <button
                 type="button"
                 className="btn btn-outline-light btn-sm rounded-0 d-md-none"
@@ -42,14 +34,14 @@ export default function AdminLayout() {
               </button>
             </div>
 
-            {/* d-none oculta en celular si está cerrado; d-md-flex lo muestra siempre en md+ */}
+            {/* d-none/d-flex aplica bajo md; d-md-flex lo deja siempre visible desde md */}
             <div
               id="menuAdmin"
               className={`flex-column flex-grow-1 mt-3 mt-md-0 ${menuAbierto ? "d-flex" : "d-none"} d-md-flex`}
             >
               <ul className="nav flex-column mb-auto">
                 <li className="nav-item">
-                  {/* 'end' para que solo se active en la ruta exacta */}
+                  {/* end: sin esto también quedaría activo en /admin/productos y /admin/usuarios */}
                   <NavLink end className="nav-link text-uppercase py-3" to="/admin" onClick={cerrarMenu}>
                     <i className="bi bi-speedometer2 me-2"></i>Resumen Paddock
                   </NavLink>
@@ -77,7 +69,6 @@ export default function AdminLayout() {
           </div>
         </nav>
 
-        {/* Contenido principal: aquí se inyecta cada sub-vista */}
         <main className="col-md-9 ms-sm-auto col-lg-10 admin-content">
           <Outlet />
         </main>

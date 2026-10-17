@@ -1,7 +1,6 @@
-/* Error Boundary: atrapa errores de renderizado en los componentes hijos
-   y muestra un mensaje amigable en vez de dejar la página en blanco.
-   React solo permite crearlos como componente de CLASE, porque usan los
-   métodos de ciclo de vida getDerivedStateFromError y componentDidCatch. */
+/* Atrapa errores de render de los hijos y muestra un fallback en vez de una
+   pantalla en blanco. Tiene que ser componente de clase: getDerivedStateFromError
+   y componentDidCatch no tienen equivalente en hooks. */
 import { Component } from "react";
 
 export default class ErrorBoundary extends Component {
@@ -10,17 +9,15 @@ export default class ErrorBoundary extends Component {
     this.state = { hayError: false };
   }
 
-  // Se ejecuta cuando un hijo lanza un error: actualiza el estado
   static getDerivedStateFromError() {
     return { hayError: true };
   }
 
-  // Lugar para registrar el error (aquí solo en consola)
+  // Punto para enviar el error a un servicio de logging; por ahora va a consola.
   componentDidCatch(error) {
     console.error("Error capturado por ErrorBoundary:", error.message);
   }
 
-  // Permite al usuario intentar de nuevo
   reiniciar = () => {
     this.setState({ hayError: false });
   };

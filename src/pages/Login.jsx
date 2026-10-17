@@ -1,12 +1,10 @@
-/* Vista de Login: formulario con validación React (estado controlado).
-   Migrado de views_tienda/login.html + js/validaciones.js.
-   Si el correo contiene "admin" redirige al panel de administración. */
+/* /login — autenticación simulada (sin backend ni sesión).
+   Un correo que contenga "admin" redirige a /admin; el resto vuelve a la tienda. */
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { validarLogin } from "../utils/validadores";
 
 export default function Login() {
-  // Estado controlado del formulario (requisito IE2.1.2)
   const [datos, setDatos] = useState({ correo: "", password: "" });
   const [error, setError] = useState("");
   const navigate = useNavigate();
@@ -21,7 +19,7 @@ export default function Login() {
     setError(mensaje);
     if (mensaje) return; // hay error: no continuar
 
-    // Lógica de roles simulada: admin → panel, cliente → tienda
+    // TODO: reemplazar por el rol que entregue el backend.
     if (datos.correo.toLowerCase().includes("admin")) {
       navigate("/admin");
     } else {
@@ -55,7 +53,6 @@ export default function Login() {
                 />
               </div>
 
-              {/* Mensaje de error: solo se muestra cuando hay uno */}
               {error && <div className="alert alert-danger rounded-0">{error}</div>}
 
               <button type="submit" className="btn btn-dark w-100 fw-bold py-2 rounded-0">
