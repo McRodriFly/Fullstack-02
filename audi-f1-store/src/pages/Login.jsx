@@ -3,7 +3,7 @@
    Si el correo contiene "admin" redirige al panel de administración. */
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { validarLogin } from "../utils/validadores";
+import { loginAPI } from "../services/api";
 
 export default function Login() {
   // Estado controlado del formulario (requisito IE2.1.2)
@@ -15,14 +15,29 @@ export default function Login() {
     setDatos({ ...datos, [e.target.name]: e.target.value });
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
-    const mensaje = validarLogin(datos);
-    setError(mensaje);
-    if (mensaje) return; // hay error: no continuar
+    setError("");
 
-    // Lógica de roles simulada: admin → panel, cliente → tienda
-    if (datos.correo.toLowerCase().includes("admin")) {
+    if (!datos.correo || !datos.password) {
+      setError("Completa todos los campos obligatorios.");
+      return;
+    }
+
+    // Llamada REST al Backend Spring Boot con JWT
+    const resultado = await loginAPI(datos.correo, datos.password);
+
+    if (!resultado.success) {
+      setError(resultado.message);
+      return;
+    }
+
+    // Guardar sesión y token JWT (persistencia ante recargas de página)
+    localStorage.setItem("tokenJWT", resultado.usuario.token);
+    localStorage.setItem("usuarioLogueado", JSON.stringify(resultado.usuario));
+
+    // Restricción de acceso basada en roles (Pauta EP3)
+    if (resultado.usuario.rol === "ROLE_ADMIN" || resultado.usuario.rol === "ROLE_VENDEDOR") {
       navigate("/admin");
     } else {
       navigate("/");
