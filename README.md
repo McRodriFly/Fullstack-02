@@ -1,6 +1,6 @@
 # 🏎️ Audi F1 Store — Fullstack II (DSY1104)
 
-Proyecto semestral para la asignatura **Desarrollo Fullstack II**. Contiene la tienda oficial de merchandising del equipo **Audi Formula 1**, estructurada con frontend en React, backend en Spring Boot y arquitectura de microservicios con Spring Cloud.
+Proyecto semestral para la asignatura **Desarrollo Fullstack II**. Contiene la tienda oficial de merchandising del equipo **Audi Formula 1**, estructurada con frontend en React y backend en Spring Boot (monolito modular).
 
 ---
 
@@ -9,53 +9,14 @@ Proyecto semestral para la asignatura **Desarrollo Fullstack II**. Contiene la t
 ```text
 Fullstack-02/
 ├── audi-f1-store/            # Frontend en React 19 (Vite, Bootstrap, Testing Jasmine/Karma)
-├── audi-f1-api/              # Backend Monolítico REST (Spring Boot 3, H2, JWT, Swagger)
-└── audi-f1-microservices/    # Arquitectura de Microservicios (Spring Cloud)
-    ├── eureka-server/        # Servidor de descubrimiento (Puerto 8761)
-    ├── api-gateway/          # Enrutador único API Gateway (Puerto 8080)
-    ├── service-productos/    # Microservicio de inventario y CRUD (Puerto 8081)
-    └── service-usuarios/     # Microservicio de autenticación y JWT (Puerto 8082)
+└── audi-f1-api/              # Backend monolítico modular REST (Spring Boot, JWT, Swagger)
 ```
 
 ---
 
 ## 🚀 Cómo Iniciar el Proyecto
 
-### Opción 1: Levantar con Arquitectura de Microservicios (Spring Cloud)
-
-Abre terminales separadas y ejecuta en orden:
-
-1. **Eureka Server:**
-   ```bash
-   cd audi-f1-microservices/eureka-server && ./mvnw spring-boot:run
-   ```
-   *(Panel Eureka: http://localhost:8761)*
-
-2. **Microservicio de Productos:**
-   ```bash
-   cd audi-f1-microservices/service-productos && ./mvnw spring-boot:run
-   ```
-
-3. **Microservicio de Usuarios y JWT:**
-   ```bash
-   cd audi-f1-microservices/service-usuarios && ./mvnw spring-boot:run
-   ```
-
-4. **API Gateway:**
-   ```bash
-   cd audi-f1-microservices/api-gateway && ./mvnw spring-boot:run
-   ```
-   *(Rutas base: http://localhost:8080/api/v1/...)*
-
-5. **Frontend React:**
-   ```bash
-   cd audi-f1-store && npm run dev
-   ```
-   *(Tienda web: http://localhost:5173)*
-
----
-
-### Opción 2: Levantar con Backend Monolito REST
+### Backend y frontend
 
 1. **Backend:**
    ```bash
