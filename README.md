@@ -16,7 +16,13 @@ Fullstack-02/
 
 ## 🚀 Cómo Iniciar el Proyecto
 
-### Backend y frontend
+### Base de datos, backend y frontend
+
+0. **Base de datos (MySQL 8.4 en Docker):** requiere Docker Desktop.
+   ```bash
+   cp .env.example .env        # editar las contraseñas
+   docker compose up -d
+   ```
 
 1. **Backend:**
    ```bash
