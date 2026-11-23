@@ -1,24 +1,38 @@
-# Logs
-logs
+# Dependencias Node.js
+node_modules/
+**/node_modules/
+
+# Builds y temporales Vite / React
+dist/
+**/dist/
+.vite/
+**/.vite/
+
+# Builds y temporales Maven / Java
+target/
+**/target/
+*.class
+**/*.class
+
+# Bases de datos locales H2
+*.mv.db
+**/*.mv.db
+*.trace.db
+**/*.trace.db
+data/*.db
+**/data/*.db
+
+# Logs y entornos
 *.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
+**/*.log
+.env
+.env.local
 
-node_modules
-dist
-dist-ssr
-*.local
-
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
+# IDEs
+.idea/
+.vscode/
+*.iml
+.project
+.classpath
+.settings/
 .DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?

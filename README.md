@@ -1,105 +1,89 @@
-# 🏎️ Audi F1 Store — Frontend React
+# 🏎️ Audi F1 Store — Fullstack II (DSY1104)
 
-Tienda online oficial (ficticia) de merchandising del equipo **Audi F1 Team**. Proyecto desarrollado para la asignatura **DSY1104 — Desarrollo Fullstack II**.
-
-En esta **Evaluación Parcial 2** se migró la tienda de HTML/CSS/JS vanilla (EP1) a **React**, añadiendo nuevos flujos de navegación (categorías, ofertas, checkout, compra exitosa/fallida y panel de administración) y un sistema de **pruebas unitarias con Jasmine + Karma**.
+Proyecto semestral para la asignatura **Desarrollo Fullstack II**. Contiene la tienda oficial de merchandising del equipo **Audi Formula 1**, estructurada con frontend en React, backend en Spring Boot y arquitectura de microservicios con Spring Cloud.
 
 ---
 
-## 🚀 Tecnologías
+## 📁 Estructura del Repositorio
 
-| Tecnología | Uso |
-|---|---|
-| **React 19** | Componentes, props, estado, contexto |
-| **Vite** | Bundler y servidor de desarrollo |
-| **React Router 7** | Navegación entre vistas (SPA) |
-| **Bootstrap 5** | Diseño responsivo (móvil / tablet / escritorio) |
-| **Bootstrap Icons** | Iconografía del panel admin |
-| **Jasmine + Karma** | Pruebas unitarias en navegador real (Chrome Headless) |
-| **React Testing Library** | Renderizado y simulación de eventos en pruebas |
-| **localStorage** | Persistencia simulada (productos, usuarios, carrito) |
-
-## 🛠️ Instalación y ejecución
-
-```bash
-# 1. Clonar el repositorio
-git clone https://github.com/<usuario>/audi-f1-store.git
-cd audi-f1-store
-
-# 2. Instalar dependencias
-npm install
-
-# 3. Levantar el servidor de desarrollo
-npm run dev
-# → http://localhost:5173
+```text
+Fullstack-02/
+├── audi-f1-store/            # Frontend en React 19 (Vite, Bootstrap, Testing Jasmine/Karma)
+├── audi-f1-api/              # Backend Monolítico REST (Spring Boot 3, H2, JWT, Swagger)
+└── audi-f1-microservices/    # Arquitectura de Microservicios (Spring Cloud)
+    ├── eureka-server/        # Servidor de descubrimiento (Puerto 8761)
+    ├── api-gateway/          # Enrutador único API Gateway (Puerto 8080)
+    ├── service-productos/    # Microservicio de inventario y CRUD (Puerto 8081)
+    └── service-usuarios/     # Microservicio de autenticación y JWT (Puerto 8082)
 ```
-
-### 🧪 Ejecutar las pruebas unitarias
-
-```bash
-npm test
-```
-
-Ejecuta las 22 pruebas con **Karma + Jasmine** en Chrome Headless. Resultado esperado: `TOTAL: 22 SUCCESS`.
-
-### 📦 Build de producción
-
-```bash
-npm run build   # genera la carpeta dist/
-```
-
-## 🗺️ Vistas de la aplicación
-
-### Tienda (público/cliente)
-| Ruta | Descripción |
-|---|---|
-| `/` | Home — catálogo completo de productos |
-| `/producto/:id` | Detalle de producto con ficha completa |
-| `/categorias` | Productos filtrables por categoría |
-| `/ofertas` | Solo productos con precio rebajado |
-| `/carrito` | Carrito con cupones de descuento |
-| `/checkout` | Formulario de datos, entrega y pago (validado) |
-| `/compra-exitosa` | Resumen del pedido tras pago aprobado |
-| `/compra-fallida` | Aviso de pago rechazado (el carrito se conserva) |
-| `/login` | Inicio de sesión con validación de dominio |
-| `/registro` | Registro con validación de RUT chileno (módulo 11) |
-| `/nosotros` | Historia del proyecto + video |
-| `/blog` | Noticias del equipo |
-| `/contacto` | Formulario de contacto validado |
-
-### Panel de administración
-| Ruta | Descripción |
-|---|---|
-| `/admin` | Dashboard con KPIs calculados en vivo |
-| `/admin/productos` | CRUD completo de productos |
-| `/admin/usuarios` | Mantenedor de usuarios |
-
-## 🔑 Credenciales de prueba
-
-- **Admin:** cualquier correo que incluya "admin", ej: `admin@duoc.cl` (contraseña de 4 a 10 caracteres) → redirige al panel de administración.
-- **Cliente:** `usuario@gmail.com` (misma regla de contraseña).
-- **Cupones:** `F1AUDI` (10% dto.) · `NEUBURG2026` (15% dto.).
-- **Pago rechazado (demo):** tarjeta `4000000000000002` en el checkout.
-
-## 📁 Estructura del proyecto
-
-```
-src/
-├── components/     # Navbar, Footer, ProductCard, ToastCarrito
-├── context/        # CarritoContext (estado global del carrito)
-├── data/           # productos.js (CRUD), ubicacion.js, usuarios.js
-├── pages/          # Vistas de la tienda
-│   └── admin/      # Panel de administración
-├── styles/         # CSS migrado de la EP1 + toast
-├── tests/          # Pruebas unitarias (Jasmine + Karma)
-└── utils/          # validadores.js (funciones puras)
-```
-
-## 📄 Documentos
-
-- `docs/ERS_AudiF1_Store_V2.pdf` — Especificación de Requisitos del Software (versión actualizada)
-- `docs/Cobertura_Testing.pdf` — Documento de cobertura de testing
 
 ---
 
-_DSY1104 — Desarrollo Fullstack II · Evaluación Parcial 2 · 2026_
+## 🚀 Cómo Iniciar el Proyecto
+
+### Opción 1: Levantar con Arquitectura de Microservicios (Spring Cloud)
+
+Abre terminales separadas y ejecuta en orden:
+
+1. **Eureka Server:**
+   ```bash
+   cd audi-f1-microservices/eureka-server && ./mvnw spring-boot:run
+   ```
+   *(Panel Eureka: http://localhost:8761)*
+
+2. **Microservicio de Productos:**
+   ```bash
+   cd audi-f1-microservices/service-productos && ./mvnw spring-boot:run
+   ```
+
+3. **Microservicio de Usuarios y JWT:**
+   ```bash
+   cd audi-f1-microservices/service-usuarios && ./mvnw spring-boot:run
+   ```
+
+4. **API Gateway:**
+   ```bash
+   cd audi-f1-microservices/api-gateway && ./mvnw spring-boot:run
+   ```
+   *(Rutas base: http://localhost:8080/api/v1/...)*
+
+5. **Frontend React:**
+   ```bash
+   cd audi-f1-store && npm run dev
+   ```
+   *(Tienda web: http://localhost:5173)*
+
+---
+
+### Opción 2: Levantar con Backend Monolito REST
+
+1. **Backend:**
+   ```bash
+   cd audi-f1-api && ./mvnw spring-boot:run
+   ```
+   *(Swagger UI: http://localhost:8080/swagger-ui.html)*
+
+2. **Frontend React:**
+   ```bash
+   cd audi-f1-store && npm run dev
+   ```
+
+---
+
+## 🧪 Pruebas Unitarias (Frontend)
+
+Para correr la suite de pruebas unitarias en navegador real (Jasmine + Karma + Chrome Headless):
+
+```bash
+cd audi-f1-store && npm test
+```
+
+Resultado esperado: **94 SUCCESS / 100% de cobertura**.
+
+---
+
+## 🔑 Credenciales de Prueba
+
+- **Administrador:** `admin@duoc.cl` / `1234` (Acceso a panel `/admin`)
+- **Vendedor:** `vendedor@duoc.cl` / `1234`
+- **Cliente:** `cliente@gmail.com` / `1234`
