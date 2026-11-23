@@ -9,7 +9,7 @@ Proyecto semestral para la asignatura **Desarrollo Fullstack II**. Contiene la t
 ```text
 Fullstack-02/
 ├── audi-f1-store/            # Frontend en React 19 (Vite, Bootstrap, Testing Jasmine/Karma)
-└── audi-f1-api/              # Backend monolítico modular REST (Spring Boot, JWT, Swagger)
+└── backend/                  # Backend monolítico modular REST (Spring Boot, MySQL, JWT, Swagger)
 ```
 
 ---
@@ -26,7 +26,7 @@ Fullstack-02/
 
 1. **Backend:**
    ```bash
-   cd audi-f1-api && ./mvnw spring-boot:run
+   cd backend && ./mvnw spring-boot:run
    ```
    *(Swagger UI: http://localhost:8080/swagger-ui.html)*
 

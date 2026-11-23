@@ -31,7 +31,7 @@ Estructura en `eva3_dev`:
 
 ```text
 audi-f1-store/            Frontend React 19 + Vite 8 + Bootstrap (pruebas Karma/Jasmine)
-audi-f1-api/              Backend monolítico Spring Boot (H2, JWT, sin compilar aún)
+backend/                  Backend monolítico Spring Boot 4.1.3 (Java 21, MySQL 8.4 + Flyway, JWT). Antes se llamaba audi-f1-api/
 ```
 
 ---
@@ -55,12 +55,12 @@ audi-f1-api/              Backend monolítico Spring Boot (H2, JWT, sin compilar
 |---|---|---|
 | Git | cualquiera reciente | Control de versiones |
 | Node.js | **24** (`.node-version`) | Frontend. Con fnm: `fnm use` |
-| JDK | **17 o superior** (el proyecto usa 17; se probó con 21) | Backend |
+| JDK | **21** (LTS; Spring Boot 4.1 exige 17 o superior) | Backend |
 | Docker Desktop | reciente, con WSL2 en Windows | MySQL 8.4 |
 | VS Code + Extension Pack for Java | — | IDE del backend |
 | VS Code + Spring Boot Extension Pack (`vmware.vscode-boot-dev-pack`) | — | Panel de proyectos Spring |
 
-Maven no hace falta instalarlo: cada proyecto trae `mvnw`. En Windows se usa `mvnw.cmd`. `audi-f1-api` lo trae; los microservicios solo tienen `mvnw`.
+Maven no hace falta instalarlo: cada proyecto trae `mvnw`. En Windows se usa `mvnw.cmd`. El wrapper está en `backend/`.
 
 ### Clonar y arrancar el frontend
 
@@ -159,7 +159,7 @@ Leyenda: 🔴 no cumple · 🟠 parcial.
 
 | Indicador | Estado | Hallazgos |
 |---|---|---|
-| IE3.1.1 Backend + BD | 🔴 | El monolito `audi-f1-api` **no compila**: `JwtUtils` usa `io.jsonwebtoken` y el `pom.xml` no declara jjwt. La BD es H2, no MySQL. Solo 2 de las 5 tablas del modelo (`Producto`, `Usuario`). No hay capa de servicios: los controladores usan los repositorios directamente. |
+| IE3.1.1 Backend + BD | 🔴 | *(Estado inicial en `dev`; la compilación y el `pom.xml` ya se corrigieron y la conexión MySQL está configurada, pero faltan las migraciones.)* El monolito (`backend/`, antes `audi-f1-api`) no compilaba: `JwtUtils` usaba jjwt sin declararla en el `pom.xml`. La BD era H2, no MySQL. Solo 2 de las 5 tablas del modelo (`Producto`, `Usuario`). No hay capa de servicios: los controladores usan los repositorios directamente. |
 | IE3.2.1 API REST + Swagger | 🟠 | Rutas `/api/v1` y CRUD de productos. Falta CRUD de usuarios (sin PUT ni GET por id), de boletas y de categorías. El monolito no tiene springdoc; solo los microservicios de productos lo declaran. |
 | IE3.2.2 Integración | 🔴 | `audi-f1-store/src/services/api.js` tiene 3 funciones. Solo `Home` pide productos al backend (con respaldo en localStorage) y `Login` usa la API. Admin, categorías, ofertas, detalle, registro y checkout siguen contra localStorage (`src/data/*.js`). |
 | IE3.3.1 JWT + roles | 🔴 | No hay filtro JWT. `SecurityConfig` deja `/api/v1/productos/**` y `/api/v1/usuarios/**` en `permitAll`. La clave JWT se regenera en cada arranque. Contraseñas en texto plano y `GET /usuarios` las expone. No hay renovación de token. |
@@ -224,7 +224,7 @@ Pendiente:
 5. Corregir el `pom.xml`: jjwt, springdoc, validación, versiones coherentes.
 
 ### Fase 2: monolito modular
-6. Un solo despliegue en `audi-f1-api`, con módulos por dominio y capas `api`, `domain`, `service`, `repository`:
+6. Un solo despliegue en `backend`, con módulos por dominio y capas `api`, `domain`, `service`, `repository`:
    - `usuarios` (auth incluida),
    - `catalogo` (productos y categorías),
    - `ventas` (boletas y detalle de boleta),
@@ -294,7 +294,7 @@ npm run lint           # oxlint
 npm run build
 
 # Backend (Windows: mvnw.cmd en vez de ./mvnw)
-cd audi-f1-api && ./mvnw spring-boot:run
+cd backend && ./mvnw spring-boot:run
 ./mvnw test
 
 # MySQL (cuando exista el compose)
