@@ -3,13 +3,13 @@ package com.audi.store.security;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.stereotype.Component;
-import java.security.Key;
+import javax.crypto.SecretKey;
 import java.util.Date;
 
 @Component
 public class JwtUtils {
-    // Clave secreta para firmar los tokens JWT (mínimo 256 bits)
-    private final Key key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
+    // TODO: leer la clave desde una variable de entorno; hoy se regenera en cada arranque.
+    private final SecretKey key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
     private final long expirationMs = 86400000; // 24 horas
 
     public String generarToken(String correo, String rol) {
@@ -23,13 +23,13 @@ public class JwtUtils {
     }
 
     public String obtenerCorreoDelToken(String token) {
-        return Jwts.parserBuilder().setSigningKey(key).build()
-                .parseClaimsJws(token).getBody().getSubject();
+        return Jwts.parser().verifyWith(key).build()
+                .parseSignedClaims(token).getPayload().getSubject();
     }
 
     public boolean validarToken(String token) {
         try {
-            Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
+            Jwts.parser().verifyWith(key).build().parseSignedClaims(token);
             return true;
         } catch (JwtException | IllegalArgumentException e) {
             return false;

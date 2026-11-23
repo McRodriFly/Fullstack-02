@@ -11,7 +11,6 @@ public class AudiF1ApiApplication {
 		System.out.println("==================================================");
 		System.out.println("🚀 AUDI F1 STORE BACKEND ARRANCÓ CORRECTAMENTE");
 		System.out.println("📘 Swagger UI: http://localhost:8080/swagger-ui.html");
-		System.out.println("🗄️ H2 Console: http://localhost:8080/h2-console");
 		System.out.println("==================================================");
 	}
 }
