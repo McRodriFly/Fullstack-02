@@ -1,0 +1,26 @@
+spring:
+  application:
+    name: audi-f1-api
+  config:
+    # Credenciales desde el .env de la raíz del repo (según desde dónde se ejecute el backend).
+    import:
+      - optional:file:../.env[.properties]
+      - optional:file:./.env[.properties]
+  datasource:
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:audi_f1_store}?serverTimezone=America/Santiago&allowPublicKeyRetrieval=true&useSSL=false
+    username: ${DB_USER:audi}
+    password: ${DB_PASSWORD}
+  jpa:
+    open-in-view: false
+    hibernate:
+      # El esquema lo crea Flyway; Hibernate solo lo valida.
+      ddl-auto: validate
+  flyway:
+    enabled: true
+
+server:
+  port: 8080
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html

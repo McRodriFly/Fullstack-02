@@ -1,0 +1,31 @@
+# MySQL 8.4 (LTS) para el backend. Las credenciales se leen de .env (copiar desde .env.example).
+#   docker compose up -d        levanta la base de datos
+#   docker compose down         la detiene (los datos se conservan en el volumen)
+#   docker compose down -v      la detiene y BORRA los datos
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: audi-f1-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?define MYSQL_ROOT_PASSWORD en .env}
+      MYSQL_DATABASE: ${DB_NAME:-audi_f1_store}
+      MYSQL_USER: ${DB_USER:-audi}
+      MYSQL_PASSWORD: ${DB_PASSWORD:?define DB_PASSWORD en .env}
+      TZ: America/Santiago
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_0900_ai_ci
+    ports:
+      - "127.0.0.1:${DB_PORT:-3306}:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+volumes:
+  mysql_data:
