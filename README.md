@@ -8,7 +8,7 @@ Proyecto semestral para la asignatura **Desarrollo Fullstack II**. Contiene la t
 
 ```text
 Fullstack-02/
-├── audi-f1-store/            # Frontend en React 19 (Vite, Bootstrap, Testing Jasmine/Karma)
+├── frontend/                 # Frontend en React 19 (Vite, Bootstrap, Testing Jasmine/Karma)
 └── backend/                  # Backend monolítico modular REST (Spring Boot, MySQL, JWT, Swagger)
 ```
 
@@ -32,7 +32,7 @@ Fullstack-02/
 
 2. **Frontend React:**
    ```bash
-   cd audi-f1-store && npm run dev
+   cd frontend && npm run dev
    ```
 
 ---
@@ -42,7 +42,7 @@ Fullstack-02/
 Para correr la suite de pruebas unitarias en navegador real (Jasmine + Karma + Chrome Headless):
 
 ```bash
-cd audi-f1-store && npm test
+cd frontend && npm test
 ```
 
 Resultado esperado: **94 SUCCESS / 100% de cobertura**.

@@ -36,3 +36,7 @@ data/*.db
 .classpath
 .settings/
 .DS_Store
+
+# Informes de cobertura generados (frontend: Karma/Istanbul; backend: JaCoCo)
+coverage/
+**/coverage/

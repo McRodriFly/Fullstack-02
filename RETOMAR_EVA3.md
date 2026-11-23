@@ -30,7 +30,7 @@ Repo: `https://github.com/McRodriFly/Fullstack-02`
 Estructura en `eva3_dev`:
 
 ```text
-audi-f1-store/            Frontend React 19 + Vite 8 + Bootstrap (pruebas Karma/Jasmine)
+frontend/                Frontend React 19 + Vite 8 + Bootstrap (pruebas Karma/Jasmine)
 backend/                  Backend monolítico Spring Boot 4.1.3 (Java 21, MySQL 8.4 + Flyway, JWT). Antes se llamaba audi-f1-api/
 ```
 
@@ -68,7 +68,7 @@ Maven no hace falta instalarlo: cada proyecto trae `mvnw`. En Windows se usa `mv
 git clone https://github.com/McRodriFly/Fullstack-02.git
 cd Fullstack-02
 git checkout eva3_dev
-cd audi-f1-store
+cd frontend
 npm ci
 npm run dev        # http://localhost:5173
 npm test           # Karma + Jasmine en Chrome Headless (requiere Chrome instalado)
@@ -161,7 +161,7 @@ Leyenda: 🔴 no cumple · 🟠 parcial.
 |---|---|---|
 | IE3.1.1 Backend + BD | 🔴 | *(Estado inicial en `dev`; la compilación y el `pom.xml` ya se corrigieron y la conexión MySQL está configurada, pero faltan las migraciones.)* El monolito (`backend/`, antes `audi-f1-api`) no compilaba: `JwtUtils` usaba jjwt sin declararla en el `pom.xml`. La BD era H2, no MySQL. Solo 2 de las 5 tablas del modelo (`Producto`, `Usuario`). No hay capa de servicios: los controladores usan los repositorios directamente. |
 | IE3.2.1 API REST + Swagger | 🟠 | Rutas `/api/v1` y CRUD de productos. Falta CRUD de usuarios (sin PUT ni GET por id), de boletas y de categorías. El monolito no tiene springdoc; solo los microservicios de productos lo declaran. |
-| IE3.2.2 Integración | 🔴 | `audi-f1-store/src/services/api.js` tiene 3 funciones. Solo `Home` pide productos al backend (con respaldo en localStorage) y `Login` usa la API. Admin, categorías, ofertas, detalle, registro y checkout siguen contra localStorage (`src/data/*.js`). |
+| IE3.2.2 Integración | 🔴 | `frontend/src/services/api.js` tiene 3 funciones. Solo `Home` pide productos al backend (con respaldo en localStorage) y `Login` usa la API. Admin, categorías, ofertas, detalle, registro y checkout siguen contra localStorage (`src/data/*.js`). |
 | IE3.3.1 JWT + roles | 🔴 | No hay filtro JWT. `SecurityConfig` deja `/api/v1/productos/**` y `/api/v1/usuarios/**` en `permitAll`. La clave JWT se regenera en cada arranque. Contraseñas en texto plano y `GET /usuarios` las expone. No hay renovación de token. |
 | IE3.3.2 Sesión en el frontend | 🟠 | Guarda `tokenJWT` y `usuarioLogueado` en localStorage (persiste al recargar). No envía `Authorization: Bearer`, no valida expiración, no hay logout visible ni contexto de sesión. |
 | IE3.3.3 Restricciones en el frontend | 🔴 | `/admin` no tiene guardia: se entra escribiendo la URL. El Vendedor ve lo mismo que el Administrador. |
@@ -170,10 +170,10 @@ Leyenda: 🔴 no cumple · 🟠 parcial.
 Otros hallazgos:
 
 - **Frontend de `dev` sin el trabajo de la EP2.** Está basado en `d73b6d7` (sin ErrorBoundary, 404, ni las 94 pruebas) y conserva comentarios antiguos como "Migrado de…".
-- **Documentos EP3 del repo** (`audi-f1-store/docs/Informe_Avance_EP3.pdf`, `Manual_de_Usuario_Audi_F1_EP3.pdf`, `Guion_Presentacion_Audi_F1.pdf`): los tres dan error de lectura ("PDF file is damaged"). El informe describe microservicios y H2, así que quedará obsoleto.
+- **Documentos EP3 del repo** (`frontend/docs/Informe_Avance_EP3.pdf`, `Manual_de_Usuario_Audi_F1_EP3.pdf`, `Guion_Presentacion_Audi_F1.pdf`): los tres dan error de lectura ("PDF file is damaged"). El informe describe microservicios y H2, así que quedará obsoleto.
 - **Versiones inconsistentes:** monolito en Spring Boot 4.1.2; microservicios en 3.2.5 (Spring Cloud 2023.0.1); el README dice "Spring Boot 3".
 - **Pruebas del backend:** solo `contextLoads`.
-- `docs/coverage.rar` (informe del colega) quedó en `audi-f1-store/docs/`.
+- `docs/coverage.rar` (informe del colega) quedó en `frontend/docs/`.
 - Los microservicios ya fueron retirados de esta rama; las referencias a ellos en este documento describen el estado de `dev`.
 
 ---
@@ -192,7 +192,7 @@ La rama `backup` contiene 9 commits sobre `d73b6d7`:
 8. `refactor: comentarios técnicos y umbral de cobertura en 90 %`
 9. `docs: actualizar ERS, cobertura y README`
 
-En `backup` el frontend está en la raíz (`src/`, `package.json`), mientras que en `eva3_dev` está en `audi-f1-store/`. Si se decide traer ese trabajo, los archivos hay que moverlos a `audi-f1-store/` (no sirve un merge directo; usar `git checkout backup -- <ruta>` por partes o `cherry-pick` con resolución de renombres). Umbral de cobertura configurado: 90 % en `karma.config.cjs`.
+En `backup` el frontend está en la raíz (`src/`, `package.json`), mientras que en `eva3_dev` está en `frontend/`. Si se decide traer ese trabajo, los archivos hay que moverlos a `frontend/` (no sirve un merge directo; usar `git checkout backup -- <ruta>` por partes o `cherry-pick` con resolución de renombres). Umbral de cobertura configurado: 90 % en `karma.config.cjs`.
 
 ---
 
@@ -288,7 +288,7 @@ Al migrar a BCrypt hay que volver a generar estos hashes.
 
 ```bash
 # Frontend
-cd audi-f1-store && npm ci && npm run dev
+cd frontend && npm ci && npm run dev
 npm test               # pruebas + cobertura
 npm run lint           # oxlint
 npm run build
