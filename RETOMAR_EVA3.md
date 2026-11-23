@@ -12,7 +12,7 @@ Decisión de arquitectura tomada para esta entrega:
 
 - **Backend como monolito modular** (un solo despliegue Spring Boot, dividido en módulos por dominio).
 - **Base de datos MySQL 8.4 en Docker.**
-- Los microservicios (Eureka, Gateway, service-productos, service-usuarios) **no** son parte de la entrega: su destino está pendiente (ver sección 8).
+- Los microservicios (Eureka, Gateway, service-productos, service-usuarios) **se retiraron** de `eva3_dev`; siguen disponibles en la rama `dev` y en el historial.
 
 ---
 
@@ -32,7 +32,6 @@ Estructura en `eva3_dev`:
 ```text
 audi-f1-store/            Frontend React 19 + Vite 8 + Bootstrap (pruebas Karma/Jasmine)
 audi-f1-api/              Backend monolítico Spring Boot (H2, JWT, sin compilar aún)
-audi-f1-microservices/    Eureka, gateway, service-productos, service-usuarios (Spring Boot 3.2.5)
 ```
 
 ---
@@ -175,6 +174,7 @@ Otros hallazgos:
 - **Versiones inconsistentes:** monolito en Spring Boot 4.1.2; microservicios en 3.2.5 (Spring Cloud 2023.0.1); el README dice "Spring Boot 3".
 - **Pruebas del backend:** solo `contextLoads`.
 - `docs/coverage.rar` (informe del colega) quedó en `audi-f1-store/docs/`.
+- Los microservicios ya fueron retirados de esta rama; las referencias a ellos en este documento describen el estado de `dev`.
 
 ---
 
@@ -196,13 +196,19 @@ En `backup` el frontend está en la raíz (`src/`, `package.json`), mientras que
 
 ---
 
-## 8. Decisiones pendientes
+## 8. Decisiones
 
-1. **Microservicios:** quitarlos de la rama de entrega (siguen en `dev`/historial) o dejarlos aparte como alternativa. Recomendación: quitarlos.
-2. **Frontend de `backup`:** traerlo a `eva3_dev`. Recomendación: sí, por las pruebas y los arreglos.
-3. **Módulos del monolito:** Spring Modulith (verifica límites con un test) o paquetes simples con un test de arquitectura. Modulith no se vio en clases.
-4. **Esquema de BD:** Flyway (migraciones versionadas) o `ddl-auto=update`.
+Tomadas (2026-11-23):
+
+1. **Microservicios:** quitados de `eva3_dev` (siguen en `dev`). Hecho.
+2. **Frontend de `backup`:** todavía no se trae; se usa como referencia y se integrará cuando se llegue a la Fase 4.
+3. **Módulos del monolito:** primero se presenta el scaffolding (estructura de paquetes y reglas) y se aprueba antes de escribir código de backend.
+4. **Esquema de BD:** **Flyway** (migraciones versionadas).
+
+Pendiente:
+
 5. **Rama de entrega:** definir cuándo y cómo se integra `eva3_dev` en `main` con el colega.
+6. **Versión de Spring Boot:** el monolito usa 4.1.2; verificar compatibilidad de springdoc y jjwt antes de fijarla (alternativa: 3.5.x).
 
 ---
 
@@ -210,7 +216,7 @@ En `backup` el frontend está en la raíz (`src/`, `package.json`), mientras que
 
 ### Fase 0: preparación
 1. Instalar Docker Desktop (WSL2).
-2. Resolver las decisiones 1 y 2 de la sección 8.
+2. ~~Resolver las decisiones de la sección 8~~ (tomadas, ver arriba).
 
 ### Fase 1: infraestructura
 3. `docker-compose.yml` con `mysql:8.4`, volumen persistente y variables en `.env` (ya ignorado por git). Incluir un `.env.example` sin secretos.
