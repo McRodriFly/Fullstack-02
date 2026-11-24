@@ -17,8 +17,26 @@
 		<java.version>21</java.version>
 		<springdoc.version>3.2.1</springdoc.version>
 		<jjwt.version>0.13.0</jjwt.version>
+		<spring-modulith.version>2.1.3</spring-modulith.version>
 	</properties>
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.springframework.modulith</groupId>
+				<artifactId>spring-modulith-bom</artifactId>
+				<version>${spring-modulith.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
 	<dependencies>
+		<!-- Verificación de los límites entre módulos (ModularidadTest) -->
+		<dependency>
+			<groupId>org.springframework.modulith</groupId>
+			<artifactId>spring-modulith-starter-core</artifactId>
+		</dependency>
+
 		<!-- Web y persistencia -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -91,6 +109,11 @@
 		</dependency>
 
 		<!-- Pruebas -->
+		<dependency>
+			<groupId>org.springframework.modulith</groupId>
+			<artifactId>spring-modulith-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-jpa-test</artifactId>
