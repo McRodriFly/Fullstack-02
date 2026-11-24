@@ -12,6 +12,10 @@ Fullstack-02/
 └── backend/                  # Backend monolítico modular REST (Spring Boot, MySQL, JWT, Swagger)
 ```
 
+La arquitectura del backend está descrita en [`backend/ARQUITECTURA.md`](backend/ARQUITECTURA.md). Para continuar el trabajo desde otro equipo, ver [`RETOMAR_EVA3.md`](RETOMAR_EVA3.md).
+
+> **Estado:** el backend está en desarrollo. Compila y su estructura modular se verifica con un test, pero todavía no arranca (`spring-boot:run`) porque faltan las migraciones de la base de datos.
+
 ---
 
 ## 🚀 Cómo Iniciar el Proyecto
@@ -37,20 +41,28 @@ Fullstack-02/
 
 ---
 
-## 🧪 Pruebas Unitarias (Frontend)
+## 🧪 Pruebas
 
-Para correr la suite de pruebas unitarias en navegador real (Jasmine + Karma + Chrome Headless):
+**Frontend** (Jasmine + Karma + Chrome Headless):
 
 ```bash
-cd frontend && npm test
+cd frontend && npm ci && npm test
 ```
 
-Resultado esperado: **94 SUCCESS / 100% de cobertura**.
+La suite ampliada (94 pruebas, 100 % de cobertura) está en la rama `backup` y se integrará a esta rama junto con la conexión al backend.
+
+**Backend** (verifica los límites entre módulos; no necesita base de datos). En Windows, `JAVA_HOME` debe apuntar al JDK 21:
+
+```bash
+cd backend && ./mvnw -B clean -Dtest=ModularidadTest test
+```
 
 ---
 
 ## 🔑 Credenciales de Prueba
 
-- **Administrador:** `admin@duoc.cl` / `1234` (Acceso a panel `/admin`)
+Se crearán con los datos iniciales de la base de datos (aún no existen):
+
+- **Administrador:** `admin@duoc.cl` / `1234` (acceso al panel `/admin`)
 - **Vendedor:** `vendedor@duoc.cl` / `1234`
 - **Cliente:** `cliente@gmail.com` / `1234`
