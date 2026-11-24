@@ -44,6 +44,8 @@ catalogo/
     └── domain/              entidades JPA
 ```
 
+`ventas` no tiene `api/` por ahora: se crea cuando otro módulo necesite usarla.
+
 Dependencias permitidas:
 
 | Módulo | Puede usar |
