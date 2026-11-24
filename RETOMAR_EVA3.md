@@ -1,18 +1,56 @@
 # Retomar la Evaluación Parcial 3 (DSY1104) desde otro equipo
 
-Documento de traspaso: contiene todo lo necesario para continuar el trabajo sin depender de la sesión ni del PC donde se inició. Estado a fecha 2026-11-23.
+Documento de traspaso: contiene todo lo necesario para continuar el trabajo sin depender de la sesión ni del PC donde se inició. Última actualización: 2026-11-23.
+
+---
+
+## 0. Dónde quedamos y qué sigue
+
+**Hecho y subido a GitHub (rama `eva3_dev`):**
+
+- Merge de `dev` (arquitectura EP3 inicial) y limpieza de pnpm.
+- Microservicios retirados de la rama (siguen en `dev`).
+- Carpetas renombradas: `frontend/` y `backend/`.
+- Backend corregido: `pom.xml` con Spring Boot 4.1.3, Java 21, Flyway, driver MySQL, springdoc, jjwt 0.13 y Spring Modulith 2.1.3.
+- `docker-compose.yml` con MySQL 8.4, `.env.example` y `application.yml` por variables de entorno.
+- **`backend/ARQUITECTURA.md`**: la arquitectura acordada, con las 22 reglas. Leerlo antes de escribir código de backend.
+- Esqueleto de los módulos `usuarios`, `catalogo`, `ventas` y `shared`, con sus contratos públicos (`CatalogoApi`, `UsuariosApi`) y el test `ModularidadTest` (pasa).
+
+**Siguiente paso: parte 3 de la Fase 2, la migración `V1__esquema.sql`.** Requiere cambiar a **Opus 5.5 con esfuerzo alto** (`/model` y `/effort`).
+
+### Qué modelo y esfuerzo usar en cada parte
+
+| Parte | Qué incluye | Modelo | Esfuerzo |
+|---|---|---|---|
+| ✅ 1 y 2 | Documento de arquitectura, Modulith y esqueleto | Sonnet 5.5 | medio |
+| **3** | `V1__esquema.sql`: las 5 tablas, claves, tipos, índices, roles | **Opus 5.5** | **alto** |
+| 4 | `V2__datos_semilla.sql` con hashes BCrypt, entidades JPA y repositorios | Sonnet 5.5 | medio |
+| **5** | Servicios: boleta, descuento de stock, totales, cupones, reglas por rol | **Opus 5.5** | **alto** |
+| 6 | Controladores, DTOs y anotaciones de Swagger | Sonnet 5.5 | bajo o medio |
+| 7 | Pruebas: Mockito, MockMvc y Testcontainers | Sonnet 5.5 | medio |
+| **Fase 3** | JWT, BCrypt, filtro, roles y refresco de token | **Opus 5.5** | **alto o muy alto** |
+
+Después de esas partes siguen la Fase 4 (integración con el frontend) y las Fases 5 y 6; ver la sección 9.
+
+### Decisiones ya tomadas (no volver a discutirlas)
+
+- Monolito modular con capas CSR dentro de cada módulo. Estructura `api/` (público) + `internal/{web,service,repository,domain}` (privado). Spring Modulith verifica los límites.
+- MySQL 8.4 en Docker; esquema con **Flyway**; Hibernate solo valida.
+- El checkout **exige sesión iniciada**: `boletas.usuario_id` es obligatorio (no hay compra como invitado).
+- Pruebas de integración con **Testcontainers `mysql:8.4`** (requiere Docker).
+- Spring Boot **4.1.3** y Java **21**. (La 4.2.0 salió el 19-nov-2026; se prefirió la 4.1.x por ser una versión `.0` recién publicada.)
+- El frontend mejorado de la rama `backup` **todavía no se trae**; se integra al llegar a la Fase 4.
+
+### Pendiente de decidir
+
+- Cuándo y cómo se integra `eva3_dev` en `main` con el colega.
+- Si el nombre interno del frontend (`package.json`, título de `index.html`) pasa de `audi-f1-store` a `frontend` / "Audi F1 Store". Es un cambio chico y se hace junto con el `frontend/README.md`, que es una plantilla antigua.
 
 ---
 
 ## 1. Objetivo
 
 Entregar la **EP3 de Desarrollo Fullstack II** (40 % de la asignatura): integrar la tienda React con un backend Spring Boot, base de datos, JWT y roles.
-
-Decisión de arquitectura tomada para esta entrega:
-
-- **Backend como monolito modular** (un solo despliegue Spring Boot, dividido en módulos por dominio).
-- **Base de datos MySQL 8.4 en Docker.**
-- Los microservicios (Eureka, Gateway, service-productos, service-usuarios) **se retiraron** de `eva3_dev`; siguen disponibles en la rama `dev` y en el historial.
 
 ---
 
@@ -22,32 +60,38 @@ Repo: `https://github.com/McRodriFly/Fullstack-02`
 
 | Rama | Contenido |
 |---|---|
-| `main` | Línea de integración con el colega (frontend EP1 + informe de cobertura). |
-| `dev` | Commit `53aeb14` con la arquitectura EP3 inicial: frontend movido a `audi-f1-store/`, monolito `audi-f1-api/` y `audi-f1-microservices/`. |
+| `main` | Línea de integración con el colega (frontend EP1 + informe de cobertura). No se toca sin avisar. |
+| `dev` | Arquitectura EP3 inicial: frontend en `audi-f1-store/`, monolito `audi-f1-api/` y `audi-f1-microservices/`. Solo referencia. |
 | `backup` | Frontend **mejorado de la EP2**: 94 pruebas, 100 % de cobertura, ErrorBoundary, página 404, menús responsivos y filtro de categorías en la URL. Ver sección 7. |
-| `eva3_dev` | **Rama de trabajo actual.** `main` + merge de `dev` + limpieza de pnpm. Esta es la que hay que continuar. |
+| `eva3_dev` | **Rama de trabajo.** Es la que hay que continuar. |
 
 Estructura en `eva3_dev`:
 
 ```text
-frontend/                Frontend React 19 + Vite 8 + Bootstrap (pruebas Karma/Jasmine)
-backend/                  Backend monolítico Spring Boot 4.1.3 (Java 21, MySQL 8.4 + Flyway, JWT). Antes se llamaba audi-f1-api/
+Fullstack-02/
+├── docker-compose.yml     MySQL 8.4
+├── .env.example           variables de conexión sin secretos
+├── frontend/              React 19 + Vite 8 + Bootstrap (pruebas Karma/Jasmine), solo npm
+└── backend/               Spring Boot 4.1.3, Java 21, MySQL + Flyway, Modulith
+    ├── ARQUITECTURA.md
+    └── src/main/java/com/audi/store/{shared,usuarios,catalogo,ventas}
 ```
 
 ---
 
 ## 3. Reglas de trabajo (importantes)
 
-1. **Commits siempre a nombre del usuario** (`BnjmnD04`), **sin `Co-Authored-By`** ni ninguna atribución a herramientas de IA. Verificar tras cada commit: `git log -1 --format=%B`.
-2. **Solo npm** en el repo (`package-lock.json`). No subir `pnpm-lock.yaml`, `pnpm-workspace.yaml` ni referencias a pnpm. Cada persona puede usar su gestor en local mientras esos archivos no se suban.
+1. **Commits siempre a nombre del usuario** (`BnjmnD04`), **sin `Co-Authored-By`** ni ninguna atribución a herramientas de IA. Tras cada commit verificar: `git log -1 --format='%an | %B'`.
+2. **Solo npm** en el repo (`package-lock.json`). No subir `pnpm-lock.yaml`, `pnpm-workspace.yaml` ni referencias a pnpm.
 3. **No subir archivos personales**: rúbrica y anexos (`EVA3/`), resúmenes de clases (`gemini-code-*.md`), la guía personal, `proyectos_clases/` ni `evaluaci_n_parcial_2_dsy1104.md`. Se excluyen con `.git/info/exclude` (ver sección 4).
-4. Commits separados por tema, con mensajes claros (`feat:`, `fix:`, `refactor:`, `docs:`, `test:`, `chore:`, `build:`). La rúbrica evalúa el uso de GitHub y el profesor pregunta por los cambios.
-5. Comentarios del código: solo técnicos y orientados a otros desarrolladores. Sin referencias a evaluaciones, rúbricas ni "requisitos".
-6. Nunca hacer `push --force` a `main` sin avisar al colega.
+4. Commits separados por tema, con prefijo (`feat:`, `fix:`, `refactor:`, `docs:`, `test:`, `chore:`, `build:`). La rúbrica evalúa el uso de GitHub y el profesor pregunta por los cambios.
+5. Comentarios del código solo técnicos, orientados a otros desarrolladores, en español. Javadoc donde aporta (ver `ARQUITECTURA.md`, sección 8). Sin referencias a evaluaciones, rúbricas ni "requisitos".
+6. Nunca `push --force` a `main` sin avisar al colega.
+7. Antes de hacer `git add`, revisar con `git status` que no entren archivos personales ni el `.env`.
 
 ---
 
-## 4. Preparar otro equipo
+## 4. Preparar otro equipo (por ejemplo, el del trabajo)
 
 ### Herramientas
 
@@ -60,26 +104,61 @@ backend/                  Backend monolítico Spring Boot 4.1.3 (Java 21, MySQL 
 | VS Code + Extension Pack for Java | — | IDE del backend |
 | VS Code + Spring Boot Extension Pack (`vmware.vscode-boot-dev-pack`) | — | Panel de proyectos Spring |
 
-Maven no hace falta instalarlo: cada proyecto trae `mvnw`. En Windows se usa `mvnw.cmd`. El wrapper está en `backend/`.
+Maven no hace falta instalarlo: `backend/` trae `mvnw` (`mvnw.cmd` en Windows).
 
-### Clonar y arrancar el frontend
+**Si el equipo del trabajo no permite instalar Docker Desktop** (suele requerir permisos de administrador y virtualización): se puede instalar MySQL 8.4 directamente y definir en `.env` los mismos valores (`DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`). El backend no distingue de dónde viene la base. Las pruebas con Testcontainers sí necesitan Docker.
+
+### Clonar y configurar
 
 ```bash
 git clone https://github.com/McRodriFly/Fullstack-02.git
 cd Fullstack-02
 git checkout eva3_dev
+
+# Importante: que los commits salgan a nombre del usuario.
+# Copiar el nombre y el correo desde un commit existente:
+git log -1 --format='%an <%ae>'
+git config user.name  "<nombre del commit>"
+git config user.email "<correo del commit>"
+```
+
+Para hacer `git push` desde otro equipo hay que autenticarse: con HTTPS, el administrador de credenciales de Git abre el navegador la primera vez (o se usa un token personal de GitHub). El equipo original usa un alias SSH, que no existe en el otro.
+
+### Variables de entorno y base de datos
+
+```bash
+cp .env.example .env      # editar las contraseñas; .env está ignorado por Git
+docker compose up -d
+```
+
+### Frontend
+
+```bash
 cd frontend
 npm ci
 npm run dev        # http://localhost:5173
 npm test           # Karma + Jasmine en Chrome Headless (requiere Chrome instalado)
 ```
 
+### Backend (Windows)
+
+`mvnw.cmd` necesita `JAVA_HOME` apuntando al JDK real. El acceso directo `C:\Program Files\Common Files\Oracle\Java\javapath` que aparece en el PATH **no sirve**. En PowerShell:
+
+```powershell
+$env:JAVA_HOME = "C:\Program Files\Java\jdk-21.x.x"    # ajustar a la ruta instalada
+cd backend
+.\mvnw.cmd -B clean "-Dtest=ModularidadTest" test       # verifica los límites entre módulos
+.\mvnw.cmd -B -DskipTests compile
+```
+
+El backend **todavía no arranca** (`spring-boot:run`): falta el esquema (migraciones de la parte 3).
+
 ### Archivos que NO están en el repo
 
-Hay que copiarlos a mano desde el equipo original si se necesitan. Están en la raíz y excluidos de Git:
+Hay que copiarlos a mano desde el equipo original (pendrive, nube, etc.) si se necesitan. En la raíz del repo y excluidos de Git:
 
-- `EVA3/`: rúbrica (`DSY1104 Evaluación Parcial 3_EE_EP_Estudiante.pdf`) y los anexos 1 a 4. El resumen de la rúbrica está en la sección 5.
-- `evaluaci_n_parcial_2_dsy1104.md`, `gemini-code-*.md`, `proyectos_clases/`, `GUIA_DEL_PROYECTO.md`: material personal de la EP2.
+- `EVA3/`: rúbrica (`DSY1104 Evaluación Parcial 3_EE_EP_Estudiante.pdf`) y los anexos 1 a 4. El resumen está en la sección 5.
+- `evaluaci_n_parcial_2_dsy1104.md`, `gemini-code-*.md`, `proyectos_clases/`, `GUIA_DEL_PROYECTO.md`: material personal de la EP2. Para el trabajo de la EP3 no hacen falta.
 
 Para que Git no los muestre ni los suba, agregar al final de `.git/info/exclude` (archivo local de cada clon):
 
@@ -93,9 +172,9 @@ GUIA_DEL_PROYECTO.md
 EVA3/
 ```
 
-### SSH (solo si se usa el alias del equipo original)
+### Si se usa Claude Code en el otro equipo
 
-En el equipo original el remoto es `git@github.com-duoc:McRodriFly/Fullstack-02.git`, un alias definido en `~/.ssh/config`. En otro equipo se puede usar la URL HTTPS de arriba o configurar su propia llave SSH.
+La memoria y la barra de estado de Claude Code son locales de cada PC y no viajan con el repo. Al abrir una sesión nueva, pedir que lea este archivo y `backend/ARQUITECTURA.md`, y recordar las reglas de la sección 3.
 
 ---
 
@@ -116,7 +195,7 @@ En el equipo original el remoto es `git@github.com-duoc:McRodriFly/Fullstack-02.
 
 ### Situación 2: presentación individual (60 %)
 
-IE3.1.2 (12 %), IE3.2.3 (12 %), IE3.2.4 (10 %), IE3.3.4 (10 %), IE3.3.5 (8 %), IE3.3.6 (8 %). Son los mismos temas, explicados en voz alta. Formato: 15 minutos de demo más 5 de preguntas, con el sistema funcionando integrado.
+IE3.1.2 (12 %), IE3.2.3 (12 %), IE3.2.4 (10 %), IE3.3.4 (10 %), IE3.3.5 (8 %), IE3.3.6 (8 %). Son los mismos temas, explicados en voz alta. Formato: 15 minutos de demo más 5 de preguntas, con el sistema funcionando integrado. Cada integrante responde preguntas sobre los cambios hechos en GitHub.
 
 ### Instrucciones específicas del Anexo 1
 
@@ -155,26 +234,24 @@ USUARIO ──▶ BOLETA ──▶ DETALLE_BOLETA ◀── PRODUCTO ◀── C
 
 ## 6. Estado actual frente a la rúbrica
 
-Leyenda: 🔴 no cumple · 🟠 parcial.
+Leyenda: 🔴 no cumple · 🟠 parcial · 🟡 en curso.
 
-| Indicador | Estado | Hallazgos |
+| Indicador | Estado | Situación |
 |---|---|---|
-| IE3.1.1 Backend + BD | 🔴 | *(Estado inicial en `dev`; la compilación y el `pom.xml` ya se corrigieron y la conexión MySQL está configurada, pero faltan las migraciones.)* El monolito (`backend/`, antes `audi-f1-api`) no compilaba: `JwtUtils` usaba jjwt sin declararla en el `pom.xml`. La BD era H2, no MySQL. Solo 2 de las 5 tablas del modelo (`Producto`, `Usuario`). No hay capa de servicios: los controladores usan los repositorios directamente. |
-| IE3.2.1 API REST + Swagger | 🟠 | Rutas `/api/v1` y CRUD de productos. Falta CRUD de usuarios (sin PUT ni GET por id), de boletas y de categorías. El monolito no tiene springdoc; solo los microservicios de productos lo declaran. |
+| IE3.1.1 Backend + BD | 🟡 | Compila y la conexión a MySQL está configurada. Esqueleto modular listo. **Faltan** el esquema (Flyway), las entidades y la lógica de negocio: el código plano antiguo se eliminó a propósito para rehacerlo dentro de los módulos. |
+| IE3.2.1 API REST + Swagger | 🟡 | springdoc declarado en el `pom.xml`. **Faltan** los controladores y sus anotaciones. |
 | IE3.2.2 Integración | 🔴 | `frontend/src/services/api.js` tiene 3 funciones. Solo `Home` pide productos al backend (con respaldo en localStorage) y `Login` usa la API. Admin, categorías, ofertas, detalle, registro y checkout siguen contra localStorage (`src/data/*.js`). |
-| IE3.3.1 JWT + roles | 🔴 | No hay filtro JWT. `SecurityConfig` deja `/api/v1/productos/**` y `/api/v1/usuarios/**` en `permitAll`. La clave JWT se regenera en cada arranque. Contraseñas en texto plano y `GET /usuarios` las expone. No hay renovación de token. |
+| IE3.3.1 JWT + roles | 🔴 | Sin implementar en la estructura nueva (el código anterior estaba abierto y con contraseñas en texto plano). |
 | IE3.3.2 Sesión en el frontend | 🟠 | Guarda `tokenJWT` y `usuarioLogueado` en localStorage (persiste al recargar). No envía `Authorization: Bearer`, no valida expiración, no hay logout visible ni contexto de sesión. |
 | IE3.3.3 Restricciones en el frontend | 🔴 | `/admin` no tiene guardia: se entra escribiendo la URL. El Vendedor ve lo mismo que el Administrador. |
 | Presentación | 🟠 | El guion existente es de la EP2. Falta guion EP3. |
 
 Otros hallazgos:
 
-- **Frontend de `dev` sin el trabajo de la EP2.** Está basado en `d73b6d7` (sin ErrorBoundary, 404, ni las 94 pruebas) y conserva comentarios antiguos como "Migrado de…".
-- **Documentos EP3 del repo** (`frontend/docs/Informe_Avance_EP3.pdf`, `Manual_de_Usuario_Audi_F1_EP3.pdf`, `Guion_Presentacion_Audi_F1.pdf`): los tres dan error de lectura ("PDF file is damaged"). El informe describe microservicios y H2, así que quedará obsoleto.
-- **Versiones inconsistentes:** monolito en Spring Boot 4.1.2; microservicios en 3.2.5 (Spring Cloud 2023.0.1); el README dice "Spring Boot 3".
-- **Pruebas del backend:** solo `contextLoads`.
-- `docs/coverage.rar` (informe del colega) quedó en `frontend/docs/`.
-- Los microservicios ya fueron retirados de esta rama; las referencias a ellos en este documento describen el estado de `dev`.
+- **El frontend de `eva3_dev` no tiene el trabajo de la EP2.** Viene de `dev` (basado en el commit `d73b6d7`): sin ErrorBoundary, 404 ni las 94 pruebas, y con comentarios antiguos como "Migrado de…". Está resuelto en `backup`.
+- **Documentos EP3 del repo** (`frontend/docs/Informe_Avance_EP3.pdf`, `Manual_de_Usuario_Audi_F1_EP3.pdf`, `Guion_Presentacion_Audi_F1.pdf`): los tres dan error de lectura (PDF dañado) y describen microservicios y H2. Se regeneran en la Fase 6.
+- **Pruebas del backend:** `AudiF1ApiApplicationTests` (`contextLoads`) necesita MySQL corriendo; el único test que pasa hoy sin base de datos es `ModularidadTest`.
+- `docs/coverage.rar` (informe del colega) está en `frontend/docs/`.
 
 ---
 
@@ -192,62 +269,45 @@ La rama `backup` contiene 9 commits sobre `d73b6d7`:
 8. `refactor: comentarios técnicos y umbral de cobertura en 90 %`
 9. `docs: actualizar ERS, cobertura y README`
 
-En `backup` el frontend está en la raíz (`src/`, `package.json`), mientras que en `eva3_dev` está en `frontend/`. Si se decide traer ese trabajo, los archivos hay que moverlos a `frontend/` (no sirve un merge directo; usar `git checkout backup -- <ruta>` por partes o `cherry-pick` con resolución de renombres). Umbral de cobertura configurado: 90 % en `karma.config.cjs`.
+En `backup` el frontend está en la raíz (`src/`, `package.json`); en `eva3_dev` está en `frontend/`. No sirve un merge directo: hay que traer los archivos por partes (`git checkout backup -- <ruta>` y moverlos a `frontend/`) o hacer `cherry-pick` resolviendo los renombres. La configuración de cobertura (Karma + Istanbul, umbral de 90 %) escribe el informe en `frontend/coverage/`, que Git ignora.
 
 ---
 
-## 8. Decisiones
+## 8. Reglas de arquitectura
 
-Tomadas (2026-11-23):
+Están completas en **`backend/ARQUITECTURA.md`**. Resumen:
 
-1. **Microservicios:** quitados de `eva3_dev` (siguen en `dev`). Hecho.
-2. **Frontend de `backup`:** todavía no se trae; se usa como referencia y se integrará cuando se llegue a la Fase 4.
-3. **Módulos del monolito:** primero se presenta el scaffolding (estructura de paquetes y reglas) y se aprueba antes de escribir código de backend.
-4. **Esquema de BD:** **Flyway** (migraciones versionadas).
-
-Pendiente:
-
-5. **Rama de entrega:** definir cuándo y cómo se integra `eva3_dev` en `main` con el colega.
-6. **Versión de Spring Boot:** el monolito usa 4.1.2; verificar compatibilidad de springdoc y jjwt antes de fijarla (alternativa: 3.5.x).
+- `usuarios` y `catalogo` solo dependen de `shared`; `ventas` usa `catalogo :: api` y `usuarios :: api`.
+- Todo lo que no es `api/` va en `internal/`.
+- Controladores con DTOs `record`, sin entidades; lógica y transacciones en `service`; inyección por constructor.
+- Rutas `/api/v1`, errores en un formato único, Swagger en cada endpoint.
+- Esquema solo con Flyway; montos `DECIMAL(12,0)`; cada detalle de boleta guarda el precio unitario.
+- Contraseñas con BCrypt; clave JWT desde variable de entorno; permisos con `@PreAuthorize`.
 
 ---
 
 ## 9. Plan por fases
 
-### Fase 0: preparación
-1. Instalar Docker Desktop (WSL2).
-2. ~~Resolver las decisiones de la sección 8~~ (tomadas, ver arriba).
+| Fase | Contenido | Estado |
+|---|---|---|
+| 0 | Decisiones; instalar Docker Desktop | Decisiones ✅ · Docker ⏳ |
+| 1 | Infraestructura: `docker-compose.yml`, `.env.example`, `pom.xml`, `application.yml` | ✅ |
+| 2 | Monolito modular: arquitectura ✅, esqueleto ✅, **V1 esquema ⏳**, V2 semilla y entidades, servicios, controladores y Swagger, pruebas | En curso (partes 1 y 2 hechas) |
+| 3 | Seguridad: JWT, BCrypt, filtro, roles, `@PreAuthorize`, refresco de token | Pendiente |
+| 4 | Integración con el frontend: cliente HTTP, `AuthContext`, rutas por rol, migrar datos simulados a la API. Traer el trabajo de `backup` | Pendiente |
+| 5 | Calidad: pruebas de backend (Mockito, MockMvc, Testcontainers) y de frontend (sesión y guardias) | Pendiente |
+| 6 | Documentación: ERS, manual con pantallazos (Anexo 4), documentación de APIs (Anexo 3), documento de integración (Anexo 2), guion EP3, README | Pendiente |
 
-### Fase 1: infraestructura
-3. `docker-compose.yml` con `mysql:8.4`, volumen persistente y variables en `.env` (ya ignorado por git). Incluir un `.env.example` sin secretos.
-4. Driver MySQL y perfiles `dev` y `test` (H2 solo en pruebas) en `application.yml`.
-5. Corregir el `pom.xml`: jjwt, springdoc, validación, versiones coherentes.
+### Matriz de permisos objetivo (`/api/v1`)
 
-### Fase 2: monolito modular
-6. Un solo despliegue en `backend`, con módulos por dominio y capas `api`, `domain`, `service`, `repository`:
-   - `usuarios` (auth incluida),
-   - `catalogo` (productos y categorías),
-   - `ventas` (boletas y detalle de boleta),
-   - `shared`/`config` (seguridad, errores, CORS, Swagger).
-7. Los módulos se comunican por interfaces de servicio, no por repositorios ajenos.
-8. Modelo según la Figura 1 y migraciones (`V1__esquema.sql`, `V2__datos_semilla.sql`) en lugar de `DataInitializer`.
-9. DTOs, `@Valid` y `@RestControllerAdvice` para errores.
-
-### Fase 3: seguridad
-10. Spring Security con filtro JWT (clave desde variable de entorno), BCrypt, roles `ROLE_ADMIN` / `ROLE_VENDEDOR` / `ROLE_CLIENTE`, `@PreAuthorize` y refresh de token.
-11. Matriz de permisos del Anexo 1: Vendedor solo lectura de productos y órdenes; Cliente solo tienda.
-
-### Fase 4: integración con el frontend
-12. Cliente HTTP único con `Authorization: Bearer`, manejo de 401/403 y `VITE_API_URL`.
-13. `AuthContext`, rutas protegidas por rol, menús según rol y cierre de sesión.
-14. Migrar productos, categorías, ofertas, registro, checkout (crea la boleta) y panel admin a la API; eliminar la dependencia de localStorage.
-
-### Fase 5: calidad
-15. Backend: servicios con Mockito, controladores con MockMvc, seguridad por rol y test de límites entre módulos.
-16. Frontend: pruebas de sesión y guardias.
-
-### Fase 6: documentación y presentación
-17. Regenerar ERS, manual de usuario con pantallazos (Anexo 4), documentación de APIs (Anexo 3), documento de integración (Anexo 2), guion EP3 y README.
+| Recurso | Acceso |
+|---|---|
+| `POST /auth/login`, `/auth/registro`, `/auth/refresh` | Público |
+| `GET /productos`, `/productos/{id}`, `/categorias` | Público |
+| `POST`, `PUT`, `DELETE` de productos y categorías | Administrador |
+| `/usuarios` (CRUD) | Administrador |
+| `GET /boletas`, `/boletas/{id}` | Administrador y Vendedor |
+| `POST /boletas`, `GET /boletas/mias` | Cliente (sesión obligatoria) |
 
 ---
 
@@ -258,12 +318,10 @@ Pendiente:
 | Servicio | Puerto |
 |---|---|
 | Frontend (Vite) | 5173 |
-| Backend monolito (propuesto) | 8080 |
-| MySQL (propuesto) | 3306 |
-| Eureka (microservicios) | 8761 |
-| service-productos / service-usuarios | 8081 / 8082 |
+| Backend | 8080 (Swagger UI en `/swagger-ui.html`) |
+| MySQL | 3306 (solo accesible desde el propio equipo) |
 
-### Usuarios semilla actuales (solo desarrollo)
+### Usuarios semilla (a recrear en la migración V2)
 
 | Rol | Correo | Contraseña |
 |---|---|---|
@@ -271,40 +329,41 @@ Pendiente:
 | Vendedor | `vendedor@duoc.cl` | `1234` |
 | Cliente | `cliente@gmail.com` | `1234` |
 
-Al migrar a BCrypt hay que volver a generar estos hashes.
-
-### Endpoints actuales del monolito (`/api/v1`)
-
-| Método | Ruta | Estado |
-|---|---|---|
-| GET | `/productos`, `/productos/{id}`, `/productos/ofertas` | Funciona (públicos) |
-| POST / PUT / DELETE | `/productos[/{id}]` | Funciona **sin autenticación** |
-| GET | `/usuarios` | Expone contraseñas |
-| POST | `/usuarios/login` | Devuelve `{token, correo, nombre, rol}` |
-| POST | `/usuarios/registro` | Acepta `rol` desde el cliente |
-| DELETE | `/usuarios/{id}` | Sin autenticación |
+Hoy no existen en la base de datos; la V2 los creará con la contraseña guardada como hash BCrypt.
 
 ### Comandos útiles
 
 ```bash
-# Frontend
-cd frontend && npm ci && npm run dev
-npm test               # pruebas + cobertura
-npm run lint           # oxlint
-npm run build
-
-# Backend (Windows: mvnw.cmd en vez de ./mvnw)
-cd backend && ./mvnw spring-boot:run
-./mvnw test
-
-# MySQL (cuando exista el compose)
+# Base de datos
 docker compose up -d
 docker compose logs -f mysql
+docker compose down            # conserva los datos
+docker compose down -v         # BORRA los datos
+
+# Frontend
+cd frontend && npm ci && npm run dev
+npm test
+npm run lint
+npm run build
 ```
+
+```powershell
+# Backend (PowerShell; JAVA_HOME debe apuntar al JDK real)
+cd backend
+.\mvnw.cmd -B clean "-Dtest=ModularidadTest" test
+.\mvnw.cmd -B -DskipTests compile
+```
+
+### Trampas conocidas
+
+- **Usar `clean` al mover o borrar paquetes.** Maven deja clases viejas en `target/` y el test de Modulith las analiza como si existieran.
+- **VS Code recrea carpetas `target/` vacías** de proyectos que ya no existen. Son inofensivas y Git las ignora.
+- **`JAVA_HOME` mal definido** hace fallar `mvnw.cmd` con "The JAVA_HOME environment variable is not defined correctly".
+- Los avisos de Git sobre "LF will be replaced by CRLF" son normales en Windows.
 
 ### Dónde está cada cosa en el frontend
 
-- `src/services/api.js`: llamadas HTTP al backend (hoy 3 funciones).
+- `src/services/api.js`: llamadas HTTP al backend (hoy 3 funciones, con la URL fija `http://localhost:8080/api/v1`).
 - `src/data/productos.js`, `src/data/usuarios.js`: "base de datos" simulada en localStorage (a reemplazar por la API).
 - `src/context/CarritoContext.jsx`: estado global del carrito.
 - `src/pages/Login.jsx`: guarda `tokenJWT` y `usuarioLogueado`.
