@@ -1,6 +1,6 @@
 # Retomar la Evaluación Parcial 3 (DSY1104) desde otro equipo
 
-Documento de traspaso: contiene todo lo necesario para continuar el trabajo sin depender de la sesión ni del PC donde se inició. Última actualización: 2026-11-23.
+Documento de traspaso: contiene todo lo necesario para continuar el trabajo sin depender de la sesión ni del PC donde se inició. Última actualización: 2026-11-24.
 
 ---
 
@@ -15,16 +15,17 @@ Documento de traspaso: contiene todo lo necesario para continuar el trabajo sin 
 - `docker-compose.yml` con MySQL 8.4, `.env.example` y `application.yml` por variables de entorno.
 - **`backend/ARQUITECTURA.md`**: la arquitectura acordada, con las 22 reglas. Leerlo antes de escribir código de backend.
 - Esqueleto de los módulos `usuarios`, `catalogo`, `ventas` y `shared`, con sus contratos públicos (`CatalogoApi`, `UsuariosApi`) y el test `ModularidadTest` (pasa).
+- **`V1__esquema.sql`** (parte 3): las 5 tablas con claves foráneas, restricciones `CHECK` e índices. Flyway la aplica al arrancar el backend.
 
-**Siguiente paso: parte 3 de la Fase 2, la migración `V1__esquema.sql`.** Requiere cambiar a **Opus 5.5 con esfuerzo alto** (`/model` y `/effort`).
+**Siguiente paso: parte 4 de la Fase 2** (`V2__datos_semilla.sql`, entidades JPA y repositorios). Basta Sonnet 5.5 con esfuerzo medio.
 
 ### Qué modelo y esfuerzo usar en cada parte
 
 | Parte | Qué incluye | Modelo | Esfuerzo |
 |---|---|---|---|
 | ✅ 1 y 2 | Documento de arquitectura, Modulith y esqueleto | Sonnet 5.5 | medio |
-| **3** | `V1__esquema.sql`: las 5 tablas, claves, tipos, índices, roles | **Opus 5.5** | **alto** |
-| 4 | `V2__datos_semilla.sql` con hashes BCrypt, entidades JPA y repositorios | Sonnet 5.5 | medio |
+| ✅ 3 | `V1__esquema.sql`: las 5 tablas, claves, tipos, índices, roles | Opus 5.5 | alto |
+| **4** | `V2__datos_semilla.sql` con hashes BCrypt, entidades JPA y repositorios | Sonnet 5.5 | medio |
 | **5** | Servicios: boleta, descuento de stock, totales, cupones, reglas por rol | **Opus 5.5** | **alto** |
 | 6 | Controladores, DTOs y anotaciones de Swagger | Sonnet 5.5 | bajo o medio |
 | 7 | Pruebas: Mockito, MockMvc y Testcontainers | Sonnet 5.5 | medio |
@@ -98,8 +99,8 @@ Fullstack-02/
 | Herramienta | Versión | Para qué |
 |---|---|---|
 | Git | cualquiera reciente | Control de versiones |
-| Node.js | **24** (`.node-version`) | Frontend. Con fnm: `fnm use` |
-| JDK | **21** (LTS; Spring Boot 4.1 exige 17 o superior) | Backend |
+| Node.js | **26 LTS** (26.13.1 o posterior) | Frontend |
+| JDK | **21** (Temurin 21.0.13 o posterior; Spring Boot 4.1 exige 17 o superior) | Backend |
 | Docker Desktop | reciente, con WSL2 en Windows | MySQL 8.4 |
 | VS Code + Extension Pack for Java | — | IDE del backend |
 | VS Code + Spring Boot Extension Pack (`vmware.vscode-boot-dev-pack`) | — | Panel de proyectos Spring |
@@ -151,7 +152,7 @@ cd backend
 .\mvnw.cmd -B -DskipTests compile
 ```
 
-El backend **todavía no arranca** (`spring-boot:run`): falta el esquema (migraciones de la parte 3).
+Con MySQL levantado, el backend arranca y Flyway aplica `V1__esquema.sql` (`.mvnw.cmd -B clean test` lo comprueba). Aún no expone endpoints.
 
 ### Archivos que NO están en el repo
 
@@ -290,9 +291,9 @@ Están completas en **`backend/ARQUITECTURA.md`**. Resumen:
 
 | Fase | Contenido | Estado |
 |---|---|---|
-| 0 | Decisiones; instalar Docker Desktop | Decisiones ✅ · Docker ⏳ |
+| 0 | Decisiones; instalar Docker Desktop | ✅ |
 | 1 | Infraestructura: `docker-compose.yml`, `.env.example`, `pom.xml`, `application.yml` | ✅ |
-| 2 | Monolito modular: arquitectura ✅, esqueleto ✅, **V1 esquema ⏳**, V2 semilla y entidades, servicios, controladores y Swagger, pruebas | En curso (partes 1 y 2 hechas) |
+| 2 | Monolito modular: arquitectura ✅, esqueleto ✅, V1 esquema ✅, **V2 semilla y entidades ⏳**, servicios, controladores y Swagger, pruebas | En curso (partes 1 a 3 hechas) |
 | 3 | Seguridad: JWT, BCrypt, filtro, roles, `@PreAuthorize`, refresco de token | Pendiente |
 | 4 | Integración con el frontend: cliente HTTP, `AuthContext`, rutas por rol, migrar datos simulados a la API. Traer el trabajo de `backup` | Pendiente |
 | 5 | Calidad: pruebas de backend (Mockito, MockMvc, Testcontainers) y de frontend (sesión y guardias) | Pendiente |
