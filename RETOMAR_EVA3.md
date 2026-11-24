@@ -1,6 +1,6 @@
 # Retomar la Evaluación Parcial 3 (DSY1104) desde otro equipo
 
-Documento de traspaso: contiene todo lo necesario para continuar el trabajo sin depender de la sesión ni del PC donde se inició. Última actualización: 2026-11-24 (parte 5).
+Documento de traspaso: contiene todo lo necesario para continuar el trabajo sin depender de la sesión ni del PC donde se inició. Última actualización: 2026-11-24 (parte 6).
 
 ---
 
@@ -20,13 +20,16 @@ Documento de traspaso: contiene todo lo necesario para continuar el trabajo sin 
 
 - **Servicios** (parte 5): `UsuarioService`, `CategoriaService`, `ProductoService`, `BoletaService` y las fachadas `CatalogoApiService` y `UsuariosApiService`. El checkout descuenta stock con bloqueo de fila (`SELECT … FOR UPDATE`) en orden de id, cobra el precio vigente del catálogo, aplica cupones (`Cupon`: `F1AUDI` 10 %, `NEUBURG2026` 15 %) y revierte todo si algo falla. `BoletaServiceTest` (Mockito) cubre esas reglas.
 
-**Siguiente paso: parte 6 de la Fase 2** (controladores, DTOs, `GlobalExceptionHandler` y Swagger). Basta Sonnet 5.5 con esfuerzo bajo o medio.
+- **Controladores, DTOs, errores y Swagger** (parte 6): `CategoriaController`, `ProductoController`, `UsuarioController` (listar, obtener y crear) y `BoletaController` (listar y obtener), todos bajo `/api/v1` y con `@PreAuthorize`. `GlobalExceptionHandler` entrega siempre un `ApiError` (400, 401, 403, 404, 409, 500). `SecurityConfig` es un esqueleto cerrado por defecto: solo son públicos Swagger, `/api/v1/auth/**` y los GET de productos y categorías; lo demás responde 401 hasta que exista el JWT. CORS permite `http://localhost:5173` (se cambia con `app.cors.allowed-origins`). Swagger UI: `/swagger-ui.html`.
 
-Notas para la parte 6:
+**Siguiente paso: parte 7 de la Fase 2** (pruebas: Mockito, MockMvc y Testcontainers). Basta Sonnet 5.5 con esfuerzo medio.
 
-- `GlobalExceptionHandler`: `RecursoNoEncontradoException` → 404, `SolicitudInvalidaException` y errores de `@Valid` → 400, `ConflictoException` (incluye `StockInsuficienteException`) → 409. Mapear también `DataIntegrityViolationException` → 409: cubre dos registros simultáneos con el mismo correo.
-- Los servicios reciben `usuarioId` o `idSolicitante` como parámetro; mientras no exista el JWT (Fase 3), el controlador no tiene de dónde sacarlo. `POST /boletas`, `GET /boletas/mias` y `PUT`/`DELETE /usuarios/{id}` se completan en la Fase 3.
-- `BoletaService.productosDe(boletas)` entrega los nombres de los productos para armar el detalle de la respuesta.
+Qué falta por conectar en la **Fase 3** (necesita saber quién es el usuario autenticado):
+
+- `POST /auth/login`, `/auth/registro` y `/auth/refresh` (el servicio `UsuarioService.registrar` ya existe).
+- `POST /boletas` y `GET /boletas/mias`: `BoletaService.crear(usuarioId, datos)` y `listarDe(usuarioId)` ya existen; falta tomar el id del token y crear el DTO de la compra.
+- `PUT` y `DELETE /usuarios/{id}`: `UsuarioService.actualizar` y `eliminar` piden `idSolicitante`.
+- `JwtService` y `JwtAuthFilter` en `shared/security`, y reemplazar el `HttpStatusEntryPoint` de `SecurityConfig` por una respuesta con el formato `ApiError`.
 
 ### Qué modelo y esfuerzo usar en cada parte
 
@@ -36,8 +39,8 @@ Notas para la parte 6:
 | ✅ 3 | `V1__esquema.sql`: las 5 tablas, claves, tipos, índices, roles | Opus 5.5 | alto |
 | ✅ 4 | Datos semilla con hashes BCrypt, entidades JPA y repositorios | Sonnet 5.5 | medio |
 | ✅ 5 | Servicios: boleta, descuento de stock, totales, cupones, reglas por rol | **Opus 5.5** | **alto** |
-| **6** | Controladores, DTOs y anotaciones de Swagger | Sonnet 5.5 | bajo o medio |
-| 7 | Pruebas: Mockito, MockMvc y Testcontainers | Sonnet 5.5 | medio |
+| ✅ 6 | Controladores, DTOs y anotaciones de Swagger | Sonnet 5.5 | bajo o medio |
+| **7** | Pruebas: Mockito, MockMvc y Testcontainers | Sonnet 5.5 | medio |
 | **Fase 3** | JWT, BCrypt, filtro, roles y refresco de token | **Opus 5.5** | **alto o muy alto** |
 
 Después de esas partes siguen la Fase 4 (integración con el frontend) y las Fases 5 y 6; ver la sección 9.
@@ -161,7 +164,7 @@ cd backend
 .\mvnw.cmd -B -DskipTests compile
 ```
 
-Con MySQL levantado, el backend arranca y Flyway aplica las migraciones (`.\mvnw.cmd -B clean test` lo comprueba). Aún no expone endpoints.
+Con MySQL levantado, el backend arranca y Flyway aplica las migraciones (`.\mvnw.cmd -B clean test` lo comprueba). Expone la API en el puerto 8080.
 
 ### Archivos que NO están en el repo
 
@@ -302,7 +305,7 @@ Están completas en **`backend/ARQUITECTURA.md`**. Resumen:
 |---|---|---|
 | 0 | Decisiones; instalar Docker Desktop | ✅ |
 | 1 | Infraestructura: `docker-compose.yml`, `.env.example`, `pom.xml`, `application.yml` | ✅ |
-| 2 | Monolito modular: arquitectura ✅, esqueleto ✅, esquema y semilla ✅, entidades y repositorios ✅, servicios ✅, **controladores y Swagger ⏳**, pruebas | En curso (partes 1 a 5 hechas) |
+| 2 | Monolito modular: arquitectura ✅, esqueleto ✅, esquema y semilla ✅, entidades y repositorios ✅, servicios ✅, controladores y Swagger ✅, **pruebas ⏳** | En curso (partes 1 a 6 hechas) |
 | 3 | Seguridad: JWT, BCrypt, filtro, roles, `@PreAuthorize`, refresco de token | Pendiente |
 | 4 | Integración con el frontend: cliente HTTP, `AuthContext`, rutas por rol, migrar datos simulados a la API. Traer el trabajo de `backup` | Pendiente |
 | 5 | Calidad: pruebas de backend (Mockito, MockMvc, Testcontainers) y de frontend (sesión y guardias) | Pendiente |
