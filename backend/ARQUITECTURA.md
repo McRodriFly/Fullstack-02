@@ -96,7 +96,7 @@ React ── POST /api/v1/boletas ──▶ ventas/internal/web/BoletaController
 15. En entidades JPA se usa `@Getter` y `@Setter` de Lombok, nunca `@Data`: el `equals`, `hashCode` y `toString` generados rompen las relaciones perezosas de Hibernate.
 
 ### Base de datos
-16. El esquema cambia solo con migraciones Flyway (`src/main/resources/db/migration`). Una migración ya aplicada no se edita: se crea una nueva.
+16. El esquema cambia solo con migraciones Flyway (`src/main/resources/db/migration`), en una subcarpeta por módulo (`usuarios/`, `catalogo/`, `ventas/`). La numeración es única y global: Flyway ejecuta por versión sin importar la carpeta, así que una tabla con clave foránea hacia otro módulo lleva una versión posterior a la de ese módulo. Una migración ya aplicada no se edita: se crea una nueva.
 17. Hibernate solo valida el esquema (`ddl-auto: validate`).
 18. Tablas y columnas en `snake_case`. Montos en `DECIMAL(12,0)` (pesos chilenos). Todas las relaciones con clave foránea.
 19. Cada detalle de boleta guarda el precio unitario del momento de la compra.
@@ -124,6 +124,9 @@ El Vendedor solo consulta productos y órdenes. El Cliente solo usa la tienda.
 - MySQL 8.4 en Docker: `docker compose up -d` desde la raíz del repositorio.
 - Credenciales en `.env` (copiar desde `.env.example`); el backend las lee desde ahí.
 - Modelo: `usuarios` → `boletas` → `detalles_boleta` ← `productos` ← `categorias`.
+- Entre módulos las tablas se relacionan con clave foránea en la base de datos, pero las entidades de `ventas` guardan solo el id (`usuarioId`, `productoId`), sin relación JPA hacia entidades de otro módulo.
+- Migraciones actuales: `usuarios/V1` y `V4` (esquema y cuentas iniciales), `catalogo/V2` y `V5` (esquema y catálogo inicial), `ventas/V3` (esquema).
+- Cuentas iniciales de desarrollo (contraseña `1234`): `admin@duoc.cl`, `vendedor@duoc.cl`, `cliente@gmail.com`.
 
 ## 7. Pruebas
 
@@ -160,5 +163,5 @@ El Vendedor solo consulta productos y órdenes. El Cliente solo usa la tienda.
 **Un módulo:**
 1. Carpeta con `package-info.java`, `api/` e `internal/{web,service,repository,domain}`.
 2. Declarar sus dependencias permitidas en el `package-info.java`.
-3. Migración Flyway si agrega tablas.
+3. Migración Flyway en `db/migration/<módulo>/` si agrega tablas, con la siguiente versión libre.
 4. Ejecutar `ModularidadTest`.
