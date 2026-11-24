@@ -1,6 +1,6 @@
 # Retomar la Evaluación Parcial 3 (DSY1104) desde otro equipo
 
-Documento de traspaso: contiene todo lo necesario para continuar el trabajo sin depender de la sesión ni del PC donde se inició. Última actualización: 2026-11-24.
+Documento de traspaso: contiene todo lo necesario para continuar el trabajo sin depender de la sesión ni del PC donde se inició. Última actualización: 2026-11-24 (parte 5).
 
 ---
 
@@ -18,7 +18,15 @@ Documento de traspaso: contiene todo lo necesario para continuar el trabajo sin 
 - **Migraciones Flyway** en `db/migration/<módulo>/` (parte 3 y 4): `usuarios/V1` y `V4`, `catalogo/V2` y `V5`, `ventas/V3`. Crean las 5 tablas con claves foráneas, restricciones `CHECK` e índices, y siembran las 3 cuentas (contraseña con BCrypt) y el catálogo de 12 productos. Flyway las aplica al arrancar el backend.
 - **Entidades JPA y repositorios** de los tres módulos. Hibernate valida el esquema al arrancar. `ventas` guarda `usuarioId` y `productoId` sin relación JPA hacia otros módulos.
 
-**Siguiente paso: parte 5 de la Fase 2** (servicios: boleta, descuento de stock, totales, cupones, reglas por rol). Requiere cambiar a **Opus 5.5 con esfuerzo alto** (`/model` y `/effort`).
+- **Servicios** (parte 5): `UsuarioService`, `CategoriaService`, `ProductoService`, `BoletaService` y las fachadas `CatalogoApiService` y `UsuariosApiService`. El checkout descuenta stock con bloqueo de fila (`SELECT … FOR UPDATE`) en orden de id, cobra el precio vigente del catálogo, aplica cupones (`Cupon`: `F1AUDI` 10 %, `NEUBURG2026` 15 %) y revierte todo si algo falla. `BoletaServiceTest` (Mockito) cubre esas reglas.
+
+**Siguiente paso: parte 6 de la Fase 2** (controladores, DTOs, `GlobalExceptionHandler` y Swagger). Basta Sonnet 5.5 con esfuerzo bajo o medio.
+
+Notas para la parte 6:
+
+- `GlobalExceptionHandler`: `RecursoNoEncontradoException` → 404, `SolicitudInvalidaException` y errores de `@Valid` → 400, `ConflictoException` (incluye `StockInsuficienteException`) → 409. Mapear también `DataIntegrityViolationException` → 409: cubre dos registros simultáneos con el mismo correo.
+- Los servicios reciben `usuarioId` o `idSolicitante` como parámetro; mientras no exista el JWT (Fase 3), el controlador no tiene de dónde sacarlo. `POST /boletas`, `GET /boletas/mias` y `PUT`/`DELETE /usuarios/{id}` se completan en la Fase 3.
+- `BoletaService.productosDe(boletas)` entrega los nombres de los productos para armar el detalle de la respuesta.
 
 ### Qué modelo y esfuerzo usar en cada parte
 
@@ -27,8 +35,8 @@ Documento de traspaso: contiene todo lo necesario para continuar el trabajo sin 
 | ✅ 1 y 2 | Documento de arquitectura, Modulith y esqueleto | Sonnet 5.5 | medio |
 | ✅ 3 | `V1__esquema.sql`: las 5 tablas, claves, tipos, índices, roles | Opus 5.5 | alto |
 | ✅ 4 | Datos semilla con hashes BCrypt, entidades JPA y repositorios | Sonnet 5.5 | medio |
-| **5** | Servicios: boleta, descuento de stock, totales, cupones, reglas por rol | **Opus 5.5** | **alto** |
-| 6 | Controladores, DTOs y anotaciones de Swagger | Sonnet 5.5 | bajo o medio |
+| ✅ 5 | Servicios: boleta, descuento de stock, totales, cupones, reglas por rol | **Opus 5.5** | **alto** |
+| **6** | Controladores, DTOs y anotaciones de Swagger | Sonnet 5.5 | bajo o medio |
 | 7 | Pruebas: Mockito, MockMvc y Testcontainers | Sonnet 5.5 | medio |
 | **Fase 3** | JWT, BCrypt, filtro, roles y refresco de token | **Opus 5.5** | **alto o muy alto** |
 
@@ -294,7 +302,7 @@ Están completas en **`backend/ARQUITECTURA.md`**. Resumen:
 |---|---|---|
 | 0 | Decisiones; instalar Docker Desktop | ✅ |
 | 1 | Infraestructura: `docker-compose.yml`, `.env.example`, `pom.xml`, `application.yml` | ✅ |
-| 2 | Monolito modular: arquitectura ✅, esqueleto ✅, esquema y semilla ✅, entidades y repositorios ✅, **servicios ⏳**, controladores y Swagger, pruebas | En curso (partes 1 a 4 hechas) |
+| 2 | Monolito modular: arquitectura ✅, esqueleto ✅, esquema y semilla ✅, entidades y repositorios ✅, servicios ✅, **controladores y Swagger ⏳**, pruebas | En curso (partes 1 a 5 hechas) |
 | 3 | Seguridad: JWT, BCrypt, filtro, roles, `@PreAuthorize`, refresco de token | Pendiente |
 | 4 | Integración con el frontend: cliente HTTP, `AuthContext`, rutas por rol, migrar datos simulados a la API. Traer el trabajo de `backup` | Pendiente |
 | 5 | Calidad: pruebas de backend (Mockito, MockMvc, Testcontainers) y de frontend (sesión y guardias) | Pendiente |

@@ -87,7 +87,7 @@ React ── POST /api/v1/boletas ──▶ ventas/internal/web/BoletaController
 
 ### API REST
 10. Todas las rutas bajo `/api/v1`, con CRUD completo por recurso.
-11. Códigos HTTP: `201` al crear, `204` al eliminar, `400` datos inválidos, `401` sin sesión, `403` sin permiso, `404` no existe.
+11. Códigos HTTP: `201` al crear, `204` al eliminar, `400` datos inválidos, `401` sin sesión, `403` sin permiso, `404` no existe, `409` choca con el estado actual (correo repetido, stock insuficiente, registro en uso).
 12. Validación con `@Valid` en los DTOs. Un único formato de error, producido por `GlobalExceptionHandler`.
 13. Cada endpoint se documenta con `@Tag` y `@Operation` (Swagger UI en `/swagger-ui.html`).
 14. Los DTOs son `record` de Java. El mapeo entidad ↔ DTO se hace con métodos estáticos (`ProductoResponse.desde(producto)`), sin librerías de mapeo.
