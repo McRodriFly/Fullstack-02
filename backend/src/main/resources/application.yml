@@ -10,6 +10,10 @@ spring:
     url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:audi_f1_store}?serverTimezone=America/Santiago&allowPublicKeyRetrieval=true&useSSL=false
     username: ${DB_USER:audi}
     password: ${DB_PASSWORD}
+  web:
+    # Fija el idioma para que los mensajes de validación (Hibernate Validator) salgan en español.
+    locale: es-CL
+    locale-resolver: fixed
   jpa:
     open-in-view: false
     hibernate:
