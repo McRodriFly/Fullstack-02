@@ -1,7 +1,9 @@
 package com.audi.store.usuarios.internal.web;
 
 import com.audi.store.shared.config.OpenApiConfig;
+import com.audi.store.shared.security.UsuarioAutenticado;
 import com.audi.store.usuarios.internal.service.UsuarioService;
+import com.audi.store.usuarios.internal.web.dto.UsuarioActualizacionRequest;
 import com.audi.store.usuarios.internal.web.dto.UsuarioRequest;
 import com.audi.store.usuarios.internal.web.dto.UsuarioResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -12,9 +14,12 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -47,5 +52,24 @@ public class UsuarioController {
     @Operation(summary = "Crear un usuario con cualquier rol", description = "Solo administrador. 409 si el correo ya está registrado.")
     public UsuarioResponse crear(@Valid @RequestBody UsuarioRequest datos) {
         return UsuarioResponse.desde(usuarioService.crear(datos.aDatos()));
+    }
+
+    @PutMapping("/{id}")
+    @Operation(summary = "Actualizar un usuario",
+            description = "Solo administrador. Sin contraseña conserva la actual. 409 si el correo ya lo usa otro "
+                    + "usuario o si el administrador intenta cambiar su propio rol.")
+    public UsuarioResponse actualizar(
+            @PathVariable Long id,
+            @Valid @RequestBody UsuarioActualizacionRequest datos,
+            @AuthenticationPrincipal UsuarioAutenticado solicitante) {
+        return UsuarioResponse.desde(usuarioService.actualizar(id, datos.aDatos(), solicitante.id()));
+    }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @Operation(summary = "Eliminar un usuario",
+            description = "Solo administrador. 409 si es su propia cuenta o si el usuario tiene compras registradas.")
+    public void eliminar(@PathVariable Long id, @AuthenticationPrincipal UsuarioAutenticado solicitante) {
+        usuarioService.eliminar(id, solicitante.id());
     }
 }
