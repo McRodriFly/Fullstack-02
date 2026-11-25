@@ -42,6 +42,7 @@ describe("Matriz de permisos (utils/roles.js)", () => {
     expect(tieneRol(v, PERMISOS.verProductos)).toBe(true);
     expect(tieneRol(v, PERMISOS.verOrdenes)).toBe(true);
     expect(tieneRol(v, PERMISOS.gestionarProductos)).toBe(false);
+    expect(tieneRol(v, PERMISOS.gestionarCategorias)).toBe(false);
     expect(tieneRol(v, PERMISOS.gestionarUsuarios)).toBe(false);
     expect(tieneRol(v, PERMISOS.verResumen)).toBe(false);
     expect(tieneRol(v, PERMISOS.comprar)).toBe(false);
@@ -124,11 +125,13 @@ describe("Panel según el rol", () => {
   });
   afterEach(cleanup);
 
-  it("el administrador ve las cuatro secciones", () => {
+  it("el administrador ve las cinco secciones", () => {
     guardarSesionDePrueba(USUARIOS.admin);
     renderApp("/admin");
 
-    expect(menuDelPanel()).toEqual(["Resumen Paddock", "Productos", "Órdenes de Compra", "Mantenedor Usuarios", "Volver a la Tienda"]);
+    expect(menuDelPanel()).toEqual([
+      "Resumen Paddock", "Productos", "Categorías", "Órdenes de Compra", "Mantenedor Usuarios", "Volver a la Tienda",
+    ]);
     expect(screen.getByTestId("rol-panel").textContent).toBe("Administrador");
   });
 
@@ -176,6 +179,24 @@ describe("Panel según el rol", () => {
 
     expect(screen.getByText("Acceso denegado")).toBeTruthy();
     expect(screen.queryByText("Nuevo usuario")).toBe(null);
+  });
+
+  it("el vendedor no entra a categorías aunque escriba la URL", () => {
+    guardarSesionDePrueba(USUARIOS.vendedor);
+    renderApp("/admin/categorias");
+
+    expect(screen.getByText("Acceso denegado")).toBeTruthy();
+    expect(screen.queryByText("Nueva categoría")).toBe(null);
+  });
+
+  it("el administrador gestiona las categorías desde el panel", async () => {
+    guardarSesionDePrueba(USUARIOS.admin);
+    renderApp("/admin");
+
+    fireEvent.click(within(document.getElementById("menuAdmin")).getByText("Categorías"));
+
+    expect(await screen.findByText("Nueva categoría")).toBeTruthy();
+    expect(await screen.findByText("Accesorios")).toBeTruthy();
   });
 });
 

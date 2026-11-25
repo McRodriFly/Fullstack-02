@@ -5,6 +5,7 @@ import { Routes, Route } from "react-router-dom";
 import AdminLayout from "../pages/admin/AdminLayout";
 import AdminHome from "../pages/admin/AdminHome";
 import AdminProductos from "../pages/admin/AdminProductos";
+import AdminCategorias from "../pages/admin/AdminCategorias";
 import AdminUsuarios from "../pages/admin/AdminUsuarios";
 import {
   esperar, renderConTienda, guardarSesionDePrueba, USUARIOS, errorApi, simularBackend, simularCatalogo,
@@ -17,6 +18,7 @@ function renderAdmin(ruta = "/admin") {
       <Route path="/admin" element={<AdminLayout />}>
         <Route index element={<AdminHome />} />
         <Route path="productos" element={<AdminProductos />} />
+        <Route path="categorias" element={<AdminCategorias />} />
         <Route path="usuarios" element={<AdminUsuarios />} />
       </Route>
     </Routes>,
@@ -220,6 +222,122 @@ describe("Admin: mantenedor de productos", () => {
     fireEvent.click(screen.getAllByTitle("Editar")[0]);
     fireEvent.click(screen.getByText("CANCELAR"));
     expect(screen.getByText("Nuevo producto")).toBeTruthy();
+  });
+});
+
+describe("Admin: mantenedor de categorías", () => {
+  let catalogo;
+  beforeEach(() => ({ catalogo } = prepararAdmin()));
+  afterEach(cleanup);
+
+  async function renderCategorias() {
+    const vista = renderAdmin("/admin/categorias");
+    await screen.findByText("Chaquetas");
+    return vista;
+  }
+
+  // Una categoría sin productos, para poder eliminarla sin el 409.
+  function agregarCategoriaVacia() {
+    catalogo.categorias.push({ id: 6, nombre: "Souvenirs" });
+  }
+
+  it("lista las categorías del backend", async () => {
+    await renderCategorias();
+
+    expect(screen.getAllByTitle("Editar").length).toBe(5);
+    expect(screen.getByText("Poleras")).toBeTruthy();
+    expect(screen.getByText("Nueva categoría")).toBeTruthy();
+  });
+
+  it("muestra el error si el backend no entrega las categorías", async () => {
+    simularBackend({ "GET /categorias": () => errorApi(500, "Ocurrió un error inesperado") });
+    renderAdmin("/admin/categorias");
+    expect(await screen.findByText("Ocurrió un error inesperado")).toBeTruthy();
+  });
+
+  it("valida el nombre antes de enviar nada al backend", async () => {
+    const { container } = await renderCategorias();
+
+    fireEvent.click(screen.getByText("AGREGAR"));
+    expect(screen.getByText("El nombre es obligatorio.")).toBeTruthy();
+
+    escribir(container, "nombre", "x".repeat(61));
+    fireEvent.click(screen.getByText("AGREGAR"));
+    expect(screen.getByText("El nombre no puede superar los 60 caracteres.")).toBeTruthy();
+    expect(catalogo.categorias.length).toBe(5);
+  });
+
+  it("CREAR: guarda el nombre sin espacios sobrantes y la muestra en la tabla", async () => {
+    const { container } = await renderCategorias();
+    escribir(container, "nombre", "  Souvenirs ");
+    fireEvent.click(screen.getByText("AGREGAR"));
+
+    expect(await screen.findByText("Souvenirs")).toBeTruthy();
+    expect(catalogo.categorias[5].nombre).toBe("Souvenirs");
+    expect(container.querySelector('[name="nombre"]').value).toBe(""); // el formulario se limpia
+  });
+
+  it("un nombre repetido muestra el 409 del backend y conserva lo escrito", async () => {
+    const { container } = await renderCategorias();
+    escribir(container, "nombre", "gorras");
+    fireEvent.click(screen.getByText("AGREGAR"));
+
+    expect(await screen.findByText("Ya existe la categoría gorras")).toBeTruthy();
+    expect(container.querySelector('[name="nombre"]').value).toBe("gorras");
+    expect(catalogo.categorias.length).toBe(5);
+  });
+
+  it("RENOMBRAR: carga la categoría en el formulario y guarda el cambio", async () => {
+    spyOn(window, "scrollTo");
+    const { container } = await renderCategorias();
+
+    fireEvent.click(screen.getAllByTitle("Editar")[3]); // Accesorios
+    expect(screen.getByText("Editando categoría #4")).toBeTruthy();
+    expect(container.querySelector('[name="nombre"]').value).toBe("Accesorios");
+
+    escribir(container, "nombre", "Complementos");
+    fireEvent.click(screen.getByText("ACTUALIZAR"));
+
+    expect(await screen.findByText("Complementos")).toBeTruthy();
+    expect(catalogo.categorias[3].nombre).toBe("Complementos");
+    expect(screen.getByText("Nueva categoría")).toBeTruthy(); // vuelve a modo crear
+  });
+
+  it("CANCELAR limpia el formulario de edición", async () => {
+    spyOn(window, "scrollTo");
+    const { container } = await renderCategorias();
+    fireEvent.click(screen.getAllByTitle("Editar")[0]);
+
+    fireEvent.click(screen.getByText("CANCELAR"));
+
+    expect(screen.getByText("Nueva categoría")).toBeTruthy();
+    expect(container.querySelector('[name="nombre"]').value).toBe("");
+  });
+
+  it("ELIMINAR: solo borra si el usuario confirma", async () => {
+    agregarCategoriaVacia();
+    const spyConfirm = spyOn(window, "confirm").and.returnValue(false);
+    renderAdmin("/admin/categorias");
+    await screen.findByText("Souvenirs");
+
+    fireEvent.click(screen.getAllByTitle("Eliminar")[5]);
+    expect(spyConfirm).toHaveBeenCalledWith('¿Eliminar la categoría "Souvenirs"?');
+    expect(catalogo.categorias.length).toBe(6); // canceló: no se borra
+
+    spyConfirm.and.returnValue(true);
+    fireEvent.click(screen.getAllByTitle("Eliminar")[5]);
+    await esperar(() => screen.queryByText("Souvenirs") === null);
+    expect(catalogo.categorias.length).toBe(5);
+  });
+
+  it("ELIMINAR una categoría con productos muestra el 409 del backend y la deja en la lista", async () => {
+    spyOn(window, "confirm").and.returnValue(true);
+    await renderCategorias();
+
+    fireEvent.click(screen.getAllByTitle("Eliminar")[0]); // Chaquetas
+
+    expect(await screen.findByText("La categoría Chaquetas todavía tiene productos")).toBeTruthy();
+    expect(screen.getByText("Chaquetas")).toBeTruthy();
   });
 });
 

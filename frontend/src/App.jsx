@@ -22,6 +22,7 @@ import Blog from "./pages/Blog";
 import AdminLayout from "./pages/admin/AdminLayout";
 import AdminHome from "./pages/admin/AdminHome";
 import AdminProductos from "./pages/admin/AdminProductos";
+import AdminCategorias from "./pages/admin/AdminCategorias";
 import AdminUsuarios from "./pages/admin/AdminUsuarios";
 import AdminOrdenes from "./pages/admin/AdminOrdenes";
 import AdminOrdenDetalle from "./pages/admin/AdminOrdenDetalle";
@@ -73,6 +74,9 @@ export default function App() {
                   />
                   <Route element={<RutaProtegida roles={PERMISOS.verProductos} />}>
                     <Route path="productos" element={<AdminProductos />} />
+                  </Route>
+                  <Route element={<RutaProtegida roles={PERMISOS.gestionarCategorias} />}>
+                    <Route path="categorias" element={<AdminCategorias />} />
                   </Route>
                   <Route element={<RutaProtegida roles={PERMISOS.verOrdenes} />}>
                     <Route path="ordenes" element={<AdminOrdenes />} />

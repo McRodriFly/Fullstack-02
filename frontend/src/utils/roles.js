@@ -16,6 +16,7 @@ export const PERMISOS = {
   verResumen: [ADMIN],
   verProductos: [ADMIN, VENDEDOR],
   gestionarProductos: [ADMIN],
+  gestionarCategorias: [ADMIN],
   verOrdenes: [ADMIN, VENDEDOR],
   gestionarUsuarios: [ADMIN],
   comprar: [ADMIN, CLIENTE],
@@ -25,7 +26,6 @@ export const PERMISOS = {
 export function tieneRol(usuario, roles) {
   return usuario !== null && roles.includes(usuario.rol);
 }
-
 /* Ruta de inicio tras iniciar sesión: el administrador va al resumen del panel,
    el vendedor a los productos (no ve el resumen) y el cliente a la tienda. */
 export function rutaInicialPara(usuario) {

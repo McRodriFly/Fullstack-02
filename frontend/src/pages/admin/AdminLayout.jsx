@@ -12,6 +12,7 @@ import { PERMISOS, nombreDelRol, tieneRol } from "../../utils/roles";
 const SECCIONES = [
   { ruta: "/admin", texto: "Resumen Paddock", icono: "bi-speedometer2", roles: PERMISOS.verResumen, end: true },
   { ruta: "/admin/productos", texto: "Productos", icono: "bi-box-seam-fill", roles: PERMISOS.verProductos },
+  { ruta: "/admin/categorias", texto: "Categorías", icono: "bi-tags-fill", roles: PERMISOS.gestionarCategorias },
   { ruta: "/admin/ordenes", texto: "Órdenes de Compra", icono: "bi-receipt", roles: PERMISOS.verOrdenes },
   { ruta: "/admin/usuarios", texto: "Mantenedor Usuarios", icono: "bi-people-fill", roles: PERMISOS.gestionarUsuarios },
 ];

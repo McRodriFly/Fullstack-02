@@ -139,14 +139,18 @@ export function productosIniciales() {
   ];
 }
 
-/* Rutas de /productos y /categorias sobre un arreglo en memoria que la prueba puede
-   leer y modificar (state.productos). Valida lo mismo que el backend en lo básico:
-   404 si no existe y 409 al eliminar un producto "vendido" (state.vendidos). */
+/* Rutas de /productos y /categorias sobre arreglos en memoria que la prueba puede
+   leer y modificar (state.productos y state.categorias). Valida lo mismo que el
+   backend en lo básico: 404 si no existe, 409 al eliminar un producto "vendido"
+   (state.vendidos), 409 por nombre de categoría repetido o con productos al eliminar. */
 export function catalogoSimulado() {
-  const state = { productos: productosIniciales(), vendidos: new Set() };
+  const state = { productos: productosIniciales(), categorias: CATEGORIAS_API.map((c) => ({ ...c })), vendidos: new Set() };
   const buscar = (id) => state.productos.find((p) => p.id === Number(id));
+  const buscarCategoria = (id) => state.categorias.find((c) => c.id === Number(id));
+  const nombreRepetido = (nombre, idPropio) =>
+    state.categorias.some((c) => c.id !== idPropio && c.nombre.toLowerCase() === nombre.toLowerCase());
   const completar = (d, id) => {
-    const categoria = CATEGORIAS_API.find((c) => c.id === d.categoriaId);
+    const categoria = state.categorias.find((c) => c.id === d.categoriaId);
     return {
       ...d, id, categoria: categoria.nombre, oferta: d.precioOferta !== null,
       precioVigente: d.precioOferta ?? d.precio,
@@ -156,7 +160,29 @@ export function catalogoSimulado() {
     "GET /productos": () => respuestaJson(200, state.productos),
     "GET /productos/:id": ({ params }) =>
       buscar(params.id) ? respuestaJson(200, buscar(params.id)) : errorApi(404, `El producto ${params.id} no existe`),
-    "GET /categorias": () => respuestaJson(200, CATEGORIAS_API),
+    "GET /categorias": () => respuestaJson(200, state.categorias),
+    "POST /categorias": ({ cuerpo }) => {
+      if (nombreRepetido(cuerpo.nombre)) return errorApi(409, `Ya existe la categoría ${cuerpo.nombre}`);
+      const nueva = { id: Math.max(...state.categorias.map((c) => c.id)) + 1, nombre: cuerpo.nombre };
+      state.categorias.push(nueva);
+      return respuestaJson(201, nueva);
+    },
+    "PUT /categorias/:id": ({ cuerpo, params }) => {
+      const categoria = buscarCategoria(params.id);
+      if (!categoria) return errorApi(404, `La categoría ${params.id} no existe`);
+      if (nombreRepetido(cuerpo.nombre, categoria.id)) return errorApi(409, `Ya existe la categoría ${cuerpo.nombre}`);
+      categoria.nombre = cuerpo.nombre;
+      return respuestaJson(200, categoria);
+    },
+    "DELETE /categorias/:id": ({ params }) => {
+      const categoria = buscarCategoria(params.id);
+      if (!categoria) return errorApi(404, `La categoría ${params.id} no existe`);
+      if (state.productos.some((p) => p.categoriaId === categoria.id)) {
+        return errorApi(409, `La categoría ${categoria.nombre} todavía tiene productos`);
+      }
+      state.categorias = state.categorias.filter((c) => c.id !== categoria.id);
+      return new Response(null, { status: 204 });
+    },
     "POST /productos": ({ cuerpo }) => {
       const nuevo = completar(cuerpo, Math.max(...state.productos.map((p) => p.id)) + 1);
       state.productos.push(nuevo);
