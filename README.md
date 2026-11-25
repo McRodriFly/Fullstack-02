@@ -14,7 +14,7 @@ Fullstack-02/
 
 La arquitectura del backend está descrita en [`backend/ARQUITECTURA.md`](backend/ARQUITECTURA.md). Para continuar el trabajo desde otro equipo, ver [`RETOMAR_EVA3.md`](RETOMAR_EVA3.md).
 
-> **Estado:** el backend está completo (API REST con JWT, roles, Swagger y 143 pruebas) y el frontend funciona contra él: sesión, catálogo, checkout con descuento de stock, órdenes y administración de productos y usuarios. Solo falta la documentación final.
+> **Estado:** el backend está completo (API REST con JWT, roles, Swagger y 143 pruebas) y el frontend funciona contra él: sesión, catálogo, checkout con descuento de stock, órdenes y administración de productos y usuarios. La documentación entregable está en `docs/`.
 
 ---
 
@@ -59,6 +59,12 @@ cd backend && ./mvnw -B clean test
 
 Sin Docker se pueden correr solo las pruebas que no usan base de datos:
 `./mvnw -B clean test -Dtest="*ServiceTest,*ControllerTest,CuponTest,ModularidadTest"`.
+
+---
+
+## 📚 Documentación
+
+En [`docs/`](docs/): documentación de APIs e integración (Anexo 2), planilla de endpoints (Anexo 3), manual de usuario con capturas (Anexo 4) y guion de la presentación. La arquitectura del backend está en [`backend/ARQUITECTURA.md`](backend/ARQUITECTURA.md).
 
 ---
 

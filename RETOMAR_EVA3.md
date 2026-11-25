@@ -1,6 +1,6 @@
 # Retomar la Evaluación Parcial 3 (DSY1104) desde otro equipo
 
-Documento de traspaso: contiene todo lo necesario para continuar el trabajo sin depender de la sesión ni del PC donde se inició. Última actualización: 2026-11-25 (Fase 4.4).
+Documento de traspaso: contiene todo lo necesario para continuar el trabajo sin depender de la sesión ni del PC donde se inició. Última actualización: 2026-11-25 (Fases 5 y 6).
 
 ---
 
@@ -63,8 +63,16 @@ Documento de traspaso: contiene todo lo necesario para continuar el trabajo sin 
   - **Verificado contra el backend real** (no solo con el simulado de las pruebas): 23 comprobaciones del contrato (formas de datos, cupón, descuento de stock, 409 sin stock, 403 por rol y reglas de usuarios). Después se devolvió la base a su estado inicial.
   - Pruebas: en Jasmine, `waitFor(() => expect(...))` no espera (los `expect` no lanzan); usar `esperar(() => condición)` de `tests/helpers.js`. `simularBackend` acumula rutas y admite `:parametros`.
 
-**Siguiente paso:** decidir los commits de la 4.3 y la 4.4 (autoría) y seguir con la Fase 5 (pruebas que falten) y la Fase 6 (documentación).
-- Pendiente: probar el flujo completo en un navegador real contra el backend (login, compra y panel). Lo verificado hasta ahora fue a nivel de API.
+- **Prueba de punta a punta en Chrome real** (Fase 5): 22 pasos contra el sistema completo (frontend, backend y MySQL), todos correctos: catálogo, ofertas, categorías, login y error de credenciales, registro, sesión que sobrevive a la recarga, carrito con cupón, compra con N° de pedido y total del servidor, pago rechazado, sin stock (409), acceso denegado, ruta protegida con vuelta a la página pedida, CRUD de productos y usuarios (con los 409), órdenes y detalle, vendedor en solo lectura, menú móvil, Swagger y servidor caído. Se hizo con un script sobre el protocolo DevTools de Chrome (sin dependencias nuevas) que **no está en el repo**; para repetirlo a mano, seguir el guion de `docs/Guion_Presentacion_EP3.md`.
+- **Documentación entregable** (Fase 6), en `docs/`:
+  - `Anexo2_Documentacion_APIs_e_Integracion.docx`: 22 endpoints, roles, errores, cómo se integra el frontend y 19 capturas de verificación.
+  - `Anexo3_Documentacion_APIs.xlsx`: la misma API en la planilla de la plantilla.
+  - `Anexo4_Manual_de_Usuario.docx`: instalación, uso de la tienda y del panel por rol, y solución de problemas, con 31 capturas (número, título, imagen con borde negro de 1 px y nota).
+  - `Guion_Presentacion_EP3.md`: preparación, recorrido de 15 minutos con tiempos, quién responde qué y preguntas probables.
+  - `docs/capturas/`: las 31 capturas del recorrido.
+  - Las plantillas originales están en `EVA3/` (fuera del repo). Los documentos se generaron con la librería `docx` y `openpyxl`; se validaron contra el esquema de Word, pero **no se abrieron en Word**: conviene abrirlos y revisar saltos de página y la numeración de los pasos.
+
+**Siguiente paso:** revisar los documentos en Word, actualizar el ERS (el PDF de la EP2 sigue vigente en `frontend/docs/`, pero describe localStorage) y preparar la presentación. Pendientes menores: página «Mis compras» para el cliente (el endpoint `GET /boletas/mias` ya existe), cookies `httpOnly` en vez de `localStorage` y decidir cuándo integrar `eva3_dev` con `main`.
 
 Lo que el frontend necesita saber de la API (Fase 4):
 
@@ -308,7 +316,7 @@ Leyenda: 🔴 no cumple · 🟠 parcial · 🟡 en curso · 🟢 listo en el bac
 | IE3.3.1 JWT + roles | 🟢 | Spring Security con JWT (acceso y refresco), BCrypt y `@PreAuthorize` por rol en cada endpoint. |
 | IE3.3.2 Sesión en el frontend | 🟢 | `AuthContext` con tokens en `localStorage` (persiste al recargar), `Authorization: Bearer`, renovación automática del token, descarte de sesiones vencidas y botón **Cerrar Sesión**. |
 | IE3.3.3 Restricciones en el frontend | 🟢 | `RutaProtegida` y la matriz de `utils/roles.js`: sin sesión se va al login; el cliente no entra al panel; el vendedor solo ve productos (en modo lectura) y órdenes; el administrador ve todo. |
-| Presentación | 🟠 | El guion existente es de la EP2. Falta guion EP3. |
+| Presentación | 🟢 | Guion EP3 en `docs/Guion_Presentacion_EP3.md` (recorrido de 15 minutos, reparto de preguntas y respuestas). Falta ensayarlo. |
 
 Otros hallazgos:
 
@@ -359,8 +367,8 @@ Están completas en **`backend/ARQUITECTURA.md`**. Resumen:
 | 2 | Monolito modular: arquitectura ✅, esqueleto ✅, esquema y semilla ✅, entidades y repositorios ✅, servicios ✅, controladores y Swagger ✅, pruebas ✅ | ✅ Completa (partes 1 a 7) |
 | 3 | Seguridad: JWT, BCrypt, filtro, roles, `@PreAuthorize`, refresco de token | ✅ |
 | 4 | Integración con el frontend: 4.1 traer `backup` ✅; 4.2 cliente HTTP y `AuthContext` ✅; 4.3 rutas por rol ✅; 4.4 datos desde la API ✅ | ✅ Completa (4.3 y 4.4 sin commitear) |
-| 5 | Calidad: pruebas de backend ✅ (Mockito, MockMvc, Testcontainers) y de frontend (sesión y guardias, pendiente) | En curso |
-| 6 | Documentación: ERS, manual con pantallazos (Anexo 4), documentación de APIs (Anexo 3), documento de integración (Anexo 2), guion EP3, README | Pendiente |
+| 5 | Calidad: pruebas de backend ✅ (143), de frontend ✅ (192, con 100 % en los archivos críticos) y recorrido de punta a punta en Chrome ✅ (22 pasos) | ✅ Completa |
+| 6 | Documentación: Anexos 2, 3 y 4 ✅, guion EP3 ✅, README ✅. Pendiente: actualizar el ERS y revisar los .docx en Word | En curso |
 
 ### Matriz de permisos objetivo (`/api/v1`)
 
