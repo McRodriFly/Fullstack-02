@@ -54,7 +54,10 @@ module.exports = function (config) {
     esbuild: {
       jsx: "automatic",
       target: "es2020",
-      define: { IS_REACT_ACT_ENVIRONMENT: "true" },
+      // IS_REACT_ACT_ENVIRONMENT no se fija aquí: lo activa cada spec en globalThis
+      // (ver helpers.js) para que Testing Library pueda apagarlo mientras espera
+      // en findBy*/waitFor. import.meta.env no existe fuera de Vite.
+      define: { "import.meta.env": "{}" },
       loader: { ".js": "jsx", ".jsx": "jsx" },
       plugins: [istanbulJs, istanbulJsx],
     },
@@ -70,9 +73,18 @@ module.exports = function (config) {
         { type: "text-summary" },
         { type: "text" },
       ],
-      // npm test falla si la cobertura global baja de estos mínimos.
+      // npm test falla si la cobertura global baja del 90 % o si un archivo crítico
+      // (sesión, cliente HTTP, contextos, validaciones y roles) baja del 100 %.
       check: {
         global: { statements: 90, branches: 90, functions: 90, lines: 90 },
+        each: {
+          statements: 0, branches: 0, functions: 0, lines: 0,
+          overrides: {
+            "src/services/**/*.js": { statements: 100, branches: 100, functions: 100, lines: 100 },
+            "src/context/**/*.jsx": { statements: 100, branches: 100, functions: 100, lines: 100 },
+            "src/utils/**/*.js": { statements: 100, branches: 100, functions: 100, lines: 100 },
+          },
+        },
       },
     },
 
