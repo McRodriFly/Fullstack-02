@@ -1,10 +1,16 @@
-/* /checkout — datos de contacto, entrega y pago. El pago es simulado:
-   TARJETA_RECHAZADA lleva a /compra-fallida, cualquier otra tarjeta válida
-   a /compra-exitosa. El resumen viaja en el state de navegación, no en la URL. */
+/* /checkout — datos de contacto, entrega y pago. La pasarela de pago es simulada:
+   TARJETA_RECHAZADA lleva a /compra-fallida sin tocar el backend; con cualquier otra
+   tarjeta válida se registra la compra (POST /api/v1/boletas), que descuenta el stock
+   y calcula el total definitivo, y se pasa a /compra-exitosa. Si el backend rechaza
+   la compra (por ejemplo, sin stock), el carrito se conserva y se muestra el motivo.
+   El resumen viaja en el state de navegación, no en la URL. */
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useCarrito } from "../context/CarritoContext";
-import { formatearPrecio } from "../data/productos";
+import { useAuth } from "../context/AuthContext";
+import { describirError } from "../services/api";
+import { crearBoleta } from "../services/ventas";
+import { formatearPrecio } from "../utils/formato";
 import { validarCheckout } from "../utils/validadores";
 
 const FORM_INICIAL = {
@@ -22,9 +28,13 @@ const FORM_INICIAL = {
 const TARJETA_RECHAZADA = "4000000000000002";
 
 export default function Checkout() {
-  const { carrito, subtotal, total, descuento, vaciarCarrito } = useCarrito();
-  const [datos, setDatos] = useState(FORM_INICIAL);
+  const { carrito, subtotal, total, descuento, cuponCodigo, vaciarCarrito } = useCarrito();
+  const { usuario } = useAuth();
+  // La ruta exige sesión: se adelanta el nombre y el correo de la cuenta.
+  const [datos, setDatos] = useState({ ...FORM_INICIAL, nombre: usuario.nombre, correo: usuario.correo });
   const [errores, setErrores] = useState({});
+  const [errorCompra, setErrorCompra] = useState("");
+  const [enviando, setEnviando] = useState(false);
   const navigate = useNavigate();
 
   // Los hooks van antes de este return: React exige el mismo orden en cada render.
@@ -45,22 +55,44 @@ export default function Checkout() {
     setDatos({ ...datos, [e.target.name]: e.target.value });
   }
 
-  function handlePagar(e) {
+  async function handlePagar(e) {
     e.preventDefault();
     const nuevosErrores = validarCheckout(datos);
     setErrores(nuevosErrores);
+    setErrorCompra("");
     if (Object.keys(nuevosErrores).length > 0) return; // hay errores: no avanza
 
-    const numeroPedido = "AUF1-" + Date.now().toString().slice(-6);
     const tarjetaLimpia = datos.tarjeta.replace(/\s/g, "");
 
     if (tarjetaLimpia === TARJETA_RECHAZADA) {
-      // Rechazado: se conserva el carrito para reintentar.
-      navigate("/compra-fallida", { state: { numeroPedido } });
-    } else {
-      const resumen = { numeroPedido, total, items: carrito.length, datos };
+      // Rechazado: no se registra nada y se conserva el carrito para reintentar.
+      const referencia = "AUF1-" + Date.now().toString().slice(-6);
+      navigate("/compra-fallida", { state: { numeroPedido: referencia } });
+      return;
+    }
+
+    setEnviando(true);
+    try {
+      const boleta = await crearBoleta({
+        carrito,
+        entrega: datos.entrega,
+        direccion: datos.direccion,
+        ciudad: datos.ciudad,
+        cuponCodigo,
+      });
+      // El total y la cantidad son los que registró el servidor.
+      const resumen = {
+        numeroPedido: "AUF1-" + String(boleta.id).padStart(6, "0"),
+        total: boleta.total,
+        items: boleta.detalles.reduce((suma, d) => suma + d.cantidad, 0),
+        datos,
+      };
       vaciarCarrito();
       navigate("/compra-exitosa", { state: resumen });
+    } catch (err) {
+      // Sin stock, producto eliminado, cupón inválido o servidor caído: el carrito se conserva.
+      setErrorCompra(describirError(err));
+      setEnviando(false);
     }
   }
 
@@ -193,8 +225,14 @@ export default function Checkout() {
                 <span className="fw-bold fs-4 text-danger">{formatearPrecio(total)}</span>
               </div>
 
-              <button type="submit" className="btn btn-danger w-100 fw-bold py-3 rounded-0">
-                CONFIRMAR PAGO
+              {errorCompra && (
+                <div className="alert alert-danger rounded-0 border-0 small" role="alert">
+                  {errorCompra}
+                </div>
+              )}
+
+              <button type="submit" className="btn btn-danger w-100 fw-bold py-3 rounded-0" disabled={enviando}>
+                {enviando ? "PROCESANDO..." : "CONFIRMAR PAGO"}
               </button>
               <p className="small text-muted mt-3 mb-0">
                 💳 Demo: usa la tarjeta <code>4000000000000002</code> para simular un pago rechazado.
