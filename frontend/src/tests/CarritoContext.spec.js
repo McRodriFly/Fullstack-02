@@ -67,6 +67,8 @@ describe("Hook useCarrito (CarritoContext)", () => {
     expect(valido).toBe(true);
     expect(result.current.descuento).toBe(10);
     expect(result.current.total).toBe(31500);
+    // Recuerda el código normalizado, que es el que se envía al backend al pagar.
+    expect(result.current.cuponCodigo).toBe("F1AUDI");
   });
 
   it("rechaza un cupón inválido y deja el descuento en 0", () => {
@@ -82,6 +84,7 @@ describe("Hook useCarrito (CarritoContext)", () => {
     });
     expect(valido).toBe(false);
     expect(result.current.descuento).toBe(0);
+    expect(result.current.cuponCodigo).toBe("");
     expect(result.current.total).toBe(35000);
   });
 
@@ -95,6 +98,7 @@ describe("Hook useCarrito (CarritoContext)", () => {
 
     expect(result.current.cantidad).toBe(0);
     expect(result.current.descuento).toBe(0);
+    expect(result.current.cuponCodigo).toBe("");
     expect(spyRemove).toHaveBeenCalledWith("carritoTienda");
   });
 

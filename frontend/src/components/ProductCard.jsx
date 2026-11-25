@@ -1,7 +1,7 @@
 /* Tarjeta de producto. No conoce el carrito: avisa el clic con onAgregar(producto,
    precioFinal) y el padre decide qué hacer. Se reutiliza en Home, Categorías y Ofertas. */
 import { Link } from "react-router-dom";
-import { formatearPrecio } from "../data/productos";
+import { formatearPrecio } from "../utils/formato";
 
 export default function ProductCard({ producto, onAgregar }) {
   // precioOferta en 0 se trata como "sin oferta" aunque el flag esté activo.

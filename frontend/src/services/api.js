@@ -26,6 +26,13 @@ export class ErrorApi extends Error {
   }
 }
 
+/* Texto para mostrar al usuario: el mensaje del backend y, si es un error de
+   validación, los campos con problema ("precio: debe ser mayor o igual a 0"). */
+export function describirError(error) {
+  const detalles = error.detalles ?? [];
+  return detalles.length > 0 ? `${error.message}: ${detalles.join("; ")}` : error.message;
+}
+
 // Refresco en curso, compartido por las solicitudes que lleguen mientras tanto.
 let refrescoEnCurso = null;
 

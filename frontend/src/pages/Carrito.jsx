@@ -4,7 +4,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useCarrito } from "../context/CarritoContext";
-import { formatearPrecio } from "../data/productos";
+import { formatearPrecio } from "../utils/formato";
 
 export default function Carrito() {
   const {

@@ -1,11 +1,12 @@
 /* Estado global del carrito: ítems, cupón de descuento y toast de confirmación.
-   El carrito se persiste en localStorage ("carritoTienda"); el descuento no,
-   así que se pierde al recargar la página. */
+   El carrito se persiste en localStorage ("carritoTienda"); el cupón no, así que
+   se pierde al recargar la página. El descuento mostrado es una vista previa: al
+   pagar, el backend valida el código y calcula el total definitivo. */
 import { createContext, useContext, useEffect, useState } from "react";
 
 const CarritoContext = createContext();
 
-// código → % de descuento
+// código → % de descuento (los mismos que reconoce el backend)
 const CUPONES = { F1AUDI: 10, NEUBURG2026: 15 };
 
 export function CarritoProvider({ children }) {
@@ -15,6 +16,8 @@ export function CarritoProvider({ children }) {
     return guardado ? JSON.parse(guardado) : [];
   });
   const [descuento, setDescuento] = useState(0);
+  // Código del cupón aplicado ("" si no hay), que se envía al backend al pagar.
+  const [cuponCodigo, setCuponCodigo] = useState("");
   // null = toast oculto
   const [toast, setToast] = useState(null);
 
@@ -51,15 +54,18 @@ export function CarritoProvider({ children }) {
     const limpio = codigo.trim().toUpperCase();
     if (CUPONES[limpio]) {
       setDescuento(CUPONES[limpio]);
+      setCuponCodigo(limpio);
       return true;
     }
     setDescuento(0);
+    setCuponCodigo("");
     return false;
   }
 
   function vaciarCarrito() {
     persistir([]);
     setDescuento(0);
+    setCuponCodigo("");
     localStorage.removeItem("carritoTienda");
   }
 
@@ -73,6 +79,7 @@ export function CarritoProvider({ children }) {
     subtotal,
     total,
     descuento,
+    cuponCodigo,
     agregarAlCarrito,
     eliminarDelCarrito,
     aplicarCupon,

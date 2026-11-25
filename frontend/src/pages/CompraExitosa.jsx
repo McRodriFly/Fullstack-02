@@ -1,7 +1,7 @@
 /* /compra-exitosa — resumen del pedido enviado por Checkout en location.state.
    Si se entra directo a la URL, state es null y solo se muestra el mensaje. */
 import { Link, useLocation } from "react-router-dom";
-import { formatearPrecio } from "../data/productos";
+import { formatearPrecio } from "../utils/formato";
 
 export default function CompraExitosa() {
   const { state } = useLocation();
