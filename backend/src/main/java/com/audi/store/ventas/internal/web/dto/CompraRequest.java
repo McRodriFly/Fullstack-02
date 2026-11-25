@@ -17,16 +17,28 @@ import java.util.List;
  * @param ciudad         obligatoria con despacho; se ignora con retiro en tienda
  * @param cuponCodigo    omitir si no se usa cupón
  */
+@Schema(description = "El carrito al pagar. No trae precios ni totales: el servidor los calcula con el catálogo.")
 public record CompraRequest(
-        @NotEmpty @Size(max = 50) List<@Valid @NotNull Item> items,
-        @NotNull TipoEntrega tipoEntrega,
-        @Size(max = 200) @Schema(example = "Av. Siempre Viva 742") String direccionEnvio,
-        @Size(max = 80) @Schema(example = "Santiago") String ciudad,
-        @Size(max = 30) @Schema(example = "F1AUDI") String cuponCodigo) {
+        @NotEmpty @Size(max = 50)
+        @Schema(description = "Productos a comprar, entre 1 y 50 líneas.")
+        List<@Valid @NotNull Item> items,
+        @NotNull
+        @Schema(description = "Forma de entrega: DESPACHO exige dirección y ciudad; RETIRO las ignora.", example = "DESPACHO")
+        TipoEntrega tipoEntrega,
+        @Size(max = 200)
+        @Schema(description = "Dirección de despacho; obligatoria con DESPACHO.", example = "Av. Siempre Viva 742", nullable = true)
+        String direccionEnvio,
+        @Size(max = 80)
+        @Schema(description = "Ciudad de despacho; obligatoria con DESPACHO.", example = "Santiago", nullable = true)
+        String ciudad,
+        @Size(max = 30)
+        @Schema(description = "Código de cupón (F1AUDI 10 %, NEUBURG2026 15 %). Omitir si no se usa.", example = "F1AUDI", nullable = true)
+        String cuponCodigo) {
 
+    @Schema(description = "Una línea del carrito: producto y cantidad.")
     public record Item(
-            @NotNull @Schema(example = "4") Long productoId,
-            @NotNull @Positive @Schema(example = "2") Integer cantidad) {
+            @NotNull @Schema(description = "Id del producto.", example = "4") Long productoId,
+            @NotNull @Positive @Schema(description = "Unidades a comprar; debe ser mayor que cero.", example = "2") Integer cantidad) {
     }
 
     public DatosCompra aDatos() {
