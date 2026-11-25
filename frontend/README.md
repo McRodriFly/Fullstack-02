@@ -18,9 +18,18 @@ En esta **Evaluación Parcial 2** se migró la tienda de HTML/CSS/JS vanilla (EP
 | **Jasmine + Karma** | Pruebas unitarias en navegador real (Chrome Headless) |
 | **React Testing Library** | Renderizado, `renderHook` y simulación de eventos en pruebas |
 | **karma-coverage + Istanbul** | Medición de cobertura de código |
-| **localStorage** | Persistencia simulada (productos, usuarios, carrito) |
+| **fetch + JWT** | Cliente HTTP del backend con renovación automática del token |
+| **localStorage** | Sesión (tokens y usuario) y, por ahora, datos simulados de productos, usuarios y carrito |
 
-> **Estado:** hoy la tienda funciona sola, con datos simulados en `localStorage`. La conexión con el backend (`../backend`, API REST con JWT) se hace en la Fase 4; el plan está en [`../RETOMAR_EVA3.md`](../RETOMAR_EVA3.md).
+> **Estado:** el inicio de sesión, el registro y la sesión ya usan el backend (`../backend`, API REST con JWT). El catálogo, el carrito, el checkout y el panel siguen con datos simulados en `localStorage` hasta la Fase 4.4; el plan está en [`../RETOMAR_EVA3.md`](../RETOMAR_EVA3.md).
+
+## 🔐 Sesión con el backend
+
+- `src/services/api.js` llama a `http://localhost:8080/api/v1` (se cambia con `VITE_API_URL` en un `.env` del frontend). Agrega `Authorization: Bearer` si hay sesión.
+- El token de acceso dura 15 minutos. Si venció, o el backend responde 401, el cliente lo renueva una sola vez con el token de refresco (7 días) y repite la solicitud; si varias solicitudes lo necesitan a la vez, comparten el mismo refresco. Si el refresco falla, la sesión se cierra.
+- `src/services/sesion.js` guarda los tokens y el usuario en `localStorage`, así la sesión sobrevive a una recarga. Al abrir la app, una sesión con el token de refresco vencido se descarta.
+- `src/context/AuthContext.jsx` expone `useAuth()`: `usuario`, `estaAutenticado`, `iniciarSesion`, `registrarse` y `cerrarSesion`. Cerrar sesión descarta los tokens (el backend no los guarda).
+- Tras iniciar sesión, administrador y vendedor van a `/admin`; el cliente, a la tienda.
 
 ## 🛠️ Instalación y ejecución
 
@@ -45,7 +54,7 @@ npm run dev
 npm test
 ```
 
-Ejecuta las **94 pruebas** con **Karma + Jasmine** en Chrome Headless y mide la cobertura. Resultado esperado: `TOTAL: 94 SUCCESS`.
+Ejecuta las **142 pruebas** con **Karma + Jasmine** en Chrome Headless y mide la cobertura. Resultado esperado: `TOTAL: 142 SUCCESS`.
 
 | Métrica de cobertura | Resultado | Mínimo exigido |
 |---|---|---|
@@ -54,7 +63,7 @@ Ejecuta las **94 pruebas** con **Karma + Jasmine** en Chrome Headless y mide la 
 | Funciones | 100 % | 90 % |
 | Líneas | 100 % | 90 % |
 
-El reporte navegable queda en `coverage/index.html`. Si la cobertura baja del mínimo, `npm test` falla.
+El reporte navegable queda en `coverage/index.html`. `npm test` falla si la cobertura global baja del 90 % o si un archivo crítico (`src/services/`, `src/context/` y `src/utils/`) baja del 100 %.
 
 | Archivo de pruebas | Qué prueba |
 |---|---|
@@ -62,7 +71,10 @@ El reporte navegable queda en `coverage/index.html`. Si la cobertura baja del m�
 | `productos.spec.js` | CRUD de la fuente de datos simulada |
 | `CarritoContext.spec.js` | Hook `useCarrito` con `renderHook`, cupones, totales, mocks de `localStorage` y `jasmine.clock()` |
 | `ProductCard.spec.js` | Props, renderizado condicional y spy del evento clic |
-| `Login.spec.js` / `Formularios.spec.js` | Estado de formularios, errores, selects encadenados y redirecciones |
+| `sesion.spec.js` | Vencimiento de tokens, lectura robusta de la sesión guardada y avisos de cambio |
+| `api.spec.js` | Cliente HTTP: Bearer, errores del backend, sin conexión y renovación del token (incluidas solicitudes simultáneas) |
+| `AuthContext.spec.js` | Sesión persistente ante recargas, login, registro y cierre de sesión |
+| `Login.spec.js` / `Formularios.spec.js` | Login y registro contra un backend simulado (redirección por rol y errores), selects encadenados |
 | `Carrito.spec.js` / `Checkout.spec.js` | Flujo de compra completo: cupones, pago aprobado y rechazado |
 | `Navegacion.spec.js` | Rutas, Navbar responsivo, toast, página 404 y ErrorBoundary |
 | `Admin.spec.js` | Dashboard, CRUD de productos y usuarios, mock de `window.confirm` |
@@ -87,8 +99,8 @@ npm run lint    # revisión estática del código (oxlint)
 | `/checkout` | Formulario de datos, entrega y pago (validado) |
 | `/compra-exitosa` | Resumen del pedido tras pago aprobado |
 | `/compra-fallida` | Aviso de pago rechazado (el carrito se conserva) |
-| `/login` | Inicio de sesión con validación de dominio |
-| `/registro` | Registro con validación de RUT chileno (módulo 11) |
+| `/login` | Inicio de sesión contra el backend (JWT), con validación previa del formulario |
+| `/registro` | Registro como cliente en el backend, con validación de RUT chileno (módulo 11) |
 | `/nosotros` | Historia del proyecto + video |
 | `/blog` | Noticias del equipo |
 | `/contacto` | Formulario de contacto validado |
@@ -102,8 +114,11 @@ npm run lint    # revisión estática del código (oxlint)
 
 ## 🔑 Credenciales de prueba
 
-- **Admin:** cualquier correo que incluya "admin", ej: `admin@duoc.cl` (contraseña de 4 a 10 caracteres) → redirige al panel de administración.
-- **Cliente:** `usuario@gmail.com` (misma regla de contraseña).
+Cuentas iniciales del backend (contraseña `1234`; requieren el backend en ejecución):
+
+- **Administrador:** `admin@duoc.cl` → panel de administración.
+- **Vendedor:** `vendedor@duoc.cl` → panel de administración.
+- **Cliente:** `cliente@gmail.com` → tienda.
 - **Cupones:** `F1AUDI` (10% dto.) · `NEUBURG2026` (15% dto.).
 - **Pago rechazado (demo):** tarjeta `4000000000000002` en el checkout.
 
@@ -112,13 +127,14 @@ npm run lint    # revisión estática del código (oxlint)
 ```
 frontend/src/
 ├── components/     # Navbar, Footer, ProductCard, ToastCarrito, ErrorBoundary
-├── context/        # CarritoContext (estado global del carrito)
+├── context/        # AuthContext (sesión) y CarritoContext (carrito)
 ├── data/           # productos.js (CRUD), ubicacion.js, usuarios.js
+├── services/       # api.js (cliente HTTP con JWT) y sesion.js (sesión en localStorage)
 ├── pages/          # Vistas de la tienda
 │   └── admin/      # Panel de administración
 ├── styles/         # CSS migrado de la EP1 + toast
 ├── tests/          # Pruebas unitarias (Jasmine + Karma) + helpers.js
-└── utils/          # validadores.js (funciones puras)
+└── utils/          # validadores.js y roles.js (funciones puras)
 ```
 
 ## 📄 Documentos
