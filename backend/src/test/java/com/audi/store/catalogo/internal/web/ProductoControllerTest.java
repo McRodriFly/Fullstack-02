@@ -19,7 +19,10 @@ import com.audi.store.shared.config.CorsConfig;
 import com.audi.store.shared.error.ConflictoException;
 import com.audi.store.shared.error.RecursoNoEncontradoException;
 import com.audi.store.shared.error.SolicitudInvalidaException;
+import com.audi.store.shared.security.JwtProperties;
+import com.audi.store.shared.security.JwtService;
 import com.audi.store.shared.security.SecurityConfig;
+import com.audi.store.shared.security.TokenDePrueba;
 import java.math.BigDecimal;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -41,8 +44,30 @@ class ProductoControllerTest {
 
     @Autowired
     private MockMvc mvc;
+    @Autowired
+    private JwtService jwt;
+    @Autowired
+    private JwtProperties propiedadesJwt;
     @MockitoBean
     private ProductoService productoService;
+
+    @Test
+    void unTokenVencidoOInvalidoNoImpideVerElCatalogo() throws Exception {
+        when(productoService.listar(null)).thenReturn(List.of());
+
+        mvc.perform(get(RUTA).with(TokenDePrueba.clienteVencido(propiedadesJwt))).andExpect(status().isOk());
+        mvc.perform(get(RUTA).with(TokenDePrueba.bearer("basura"))).andExpect(status().isOk());
+    }
+
+    @Test
+    void conTokenRealSoloElAdministradorModificaElCatalogo() throws Exception {
+        mvc.perform(delete(RUTA + "/4").with(TokenDePrueba.vendedor(jwt))).andExpect(status().isForbidden());
+        mvc.perform(delete(RUTA + "/4").with(TokenDePrueba.cliente(jwt))).andExpect(status().isForbidden());
+        verifyNoInteractions(productoService);
+
+        mvc.perform(delete(RUTA + "/4").with(TokenDePrueba.admin(jwt))).andExpect(status().isNoContent());
+        verify(productoService).eliminar(4L);
+    }
 
     @Test
     void listarEsPublicoYTraeLosDatosDeOferta() throws Exception {

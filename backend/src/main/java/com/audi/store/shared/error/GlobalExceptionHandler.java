@@ -70,6 +70,12 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return responder(HttpStatus.FORBIDDEN, "No tienes permiso para realizar esta acción", request, List.of());
     }
 
+    /** Credenciales incorrectas o token rechazado: el mensaje dice cuál fue el motivo. */
+    @ExceptionHandler(NoAutenticadoException.class)
+    ResponseEntity<ApiError> noAutenticado(NoAutenticadoException e, WebRequest request) {
+        return responder(HttpStatus.UNAUTHORIZED, e.getMessage(), request, List.of());
+    }
+
     @ExceptionHandler(AuthenticationException.class)
     ResponseEntity<ApiError> sinSesion(AuthenticationException e, WebRequest request) {
         return responder(HttpStatus.UNAUTHORIZED, "Debes iniciar sesión", request, List.of());

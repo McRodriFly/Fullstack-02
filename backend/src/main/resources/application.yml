@@ -25,6 +25,13 @@ spring:
 server:
   port: 8080
 
+app:
+  jwt:
+    # Clave HMAC-SHA256 en Base64 (mínimo 32 bytes), desde el .env. Sin ella la aplicación no arranca.
+    secreto: ${JWT_SECRET:}
+    duracion-acceso: 15m
+    duracion-refresco: 7d
+
 springdoc:
   swagger-ui:
     path: /swagger-ui.html
