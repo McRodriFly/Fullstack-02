@@ -1,4 +1,4 @@
-/* Regiones y comunas para el formulario de registro (migrado de js/registro.js) */
+/* Regiones y comunas disponibles en el formulario de registro. */
 export const datosUbicacion = [
   {
     region: "Región Metropolitana",

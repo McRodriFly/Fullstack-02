@@ -1,58 +1,60 @@
-/* NavBar de la tienda: migración del <nav> de la EP1 a componente React.
-   Usa NavLink para resaltar la ruta activa y useCarrito() para el contador. */
+/* Menú principal de la tienda. El colapso en pantallas < lg se maneja con el
+   estado menuAbierto (clase "show" de Bootstrap) en vez de data-bs-toggle,
+   para que React controle el DOM y el comportamiento sea testeable. */
+import { useState } from "react";
 import { Link, NavLink } from "react-router-dom";
 import { useCarrito } from "../context/CarritoContext";
 
+const ENLACES = [
+  { ruta: "/", texto: "Home" },
+  { ruta: "/categorias", texto: "Categorías" },
+  { ruta: "/ofertas", texto: "Ofertas" },
+  { ruta: "/nosotros", texto: "Nosotros" },
+  { ruta: "/blog", texto: "Noticias F1" },
+  { ruta: "/contacto", texto: "Contacto" },
+  { ruta: "/login", texto: "Iniciar Sesión" },
+];
+
 export default function Navbar() {
   const { cantidad } = useCarrito();
+  const [menuAbierto, setMenuAbierto] = useState(false);
+
+  // Se llama en cada enlace para que el menú móvil se cierre al navegar.
+  function cerrarMenu() {
+    setMenuAbierto(false);
+  }
 
   return (
     <nav className="navbar navbar-expand-lg navbar-dark bg-dark border-bottom border-secondary">
       <div className="container">
-        <Link className="navbar-brand fw-bold" to="/">
+        <Link className="navbar-brand fw-bold" to="/" onClick={cerrarMenu}>
           AUDI <span className="text-danger">F1</span> STORE
         </Link>
 
-        {/* Botón hamburguesa para móvil (responsivo con Bootstrap) */}
         <button
           className="navbar-toggler"
           type="button"
-          data-bs-toggle="collapse"
-          data-bs-target="#menuTienda"
+          onClick={() => setMenuAbierto(!menuAbierto)}
           aria-controls="menuTienda"
-          aria-expanded="false"
-          aria-label="Toggle navigation"
+          aria-expanded={menuAbierto}
+          aria-label="Abrir menú"
         >
           <span className="navbar-toggler-icon"></span>
         </button>
 
-        <div className="collapse navbar-collapse" id="menuTienda">
+        <div className={`collapse navbar-collapse ${menuAbierto ? "show" : ""}`} id="menuTienda">
           <ul className="navbar-nav ms-auto mb-2 mb-lg-0">
+            {ENLACES.map((enlace) => (
+              <li className="nav-item" key={enlace.ruta}>
+                <NavLink className="nav-link" to={enlace.ruta} end onClick={cerrarMenu}>
+                  {enlace.texto}
+                </NavLink>
+              </li>
+            ))}
             <li className="nav-item">
-              <NavLink className="nav-link" to="/">Home</NavLink>
-            </li>
-            <li className="nav-item">
-              <NavLink className="nav-link" to="/categorias">Categorías</NavLink>
-            </li>
-            <li className="nav-item">
-              <NavLink className="nav-link" to="/ofertas">Ofertas</NavLink>
-            </li>
-            <li className="nav-item">
-              <NavLink className="nav-link" to="/nosotros">Nosotros</NavLink>
-            </li>
-            <li className="nav-item">
-              <NavLink className="nav-link" to="/blog">Noticias F1</NavLink>
-            </li>
-            <li className="nav-item">
-              <NavLink className="nav-link" to="/contacto">Contacto</NavLink>
-            </li>
-            <li className="nav-item">
-              <NavLink className="nav-link" to="/login">Iniciar Sesión</NavLink>
-            </li>
-            {/* Carrito con contador: estado global gracias al contexto */}
-            <li className="nav-item">
-              <NavLink className="nav-link" to="/carrito">
+              <NavLink className="nav-link" to="/carrito" onClick={cerrarMenu}>
                 🛒{" "}
+                {/* key={cantidad} fuerza a remontar el <span> y así reinicia la animación badge-pulso */}
                 <span
                   key={cantidad}
                   className="badge bg-danger badge-contador"

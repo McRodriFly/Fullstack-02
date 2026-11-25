@@ -1,4 +1,4 @@
-/* Vista Nosotros: contenido institucional migrado de la EP1. */
+/* /nosotros — contenido institucional y video del equipo. */
 export default function Nosotros() {
   return (
     <section className="container py-5">

@@ -1,16 +1,13 @@
-/* Vista de detalle de producto: muestra la ficha completa de un ítem.
-   Usa useParams() para leer el :id de la URL y buscarlo en la fuente de datos. */
+/* /producto/:id — ficha de un producto. */
 import { useParams, Link } from "react-router-dom";
 import { obtenerProductoPorId, formatearPrecio } from "../data/productos";
 import { useCarrito } from "../context/CarritoContext";
 
 export default function DetalleProducto() {
-  // Leemos el parámetro :id definido en la ruta /producto/:id
   const { id } = useParams();
   const producto = obtenerProductoPorId(id);
   const { agregarAlCarrito } = useCarrito();
 
-  // Si el id no existe, avisamos en vez de romper la página
   if (!producto) {
     return (
       <section className="container py-5 text-center">

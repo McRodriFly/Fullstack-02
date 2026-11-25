@@ -1,12 +1,10 @@
-/* Vista de Login: formulario con validación React (estado controlado).
-   Migrado de views_tienda/login.html + js/validaciones.js.
-   Si el correo contiene "admin" redirige al panel de administración. */
+/* /login — autenticación simulada (sin backend ni sesión).
+   Un correo que contenga "admin" redirige a /admin; el resto vuelve a la tienda. */
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { loginAPI } from "../services/api";
+import { validarLogin } from "../utils/validadores";
 
 export default function Login() {
-  // Estado controlado del formulario (requisito IE2.1.2)
   const [datos, setDatos] = useState({ correo: "", password: "" });
   const [error, setError] = useState("");
   const navigate = useNavigate();
@@ -15,29 +13,14 @@ export default function Login() {
     setDatos({ ...datos, [e.target.name]: e.target.value });
   }
 
-  async function handleSubmit(e) {
+  function handleSubmit(e) {
     e.preventDefault();
-    setError("");
+    const mensaje = validarLogin(datos);
+    setError(mensaje);
+    if (mensaje) return; // hay error: no continuar
 
-    if (!datos.correo || !datos.password) {
-      setError("Completa todos los campos obligatorios.");
-      return;
-    }
-
-    // Llamada REST al Backend Spring Boot con JWT
-    const resultado = await loginAPI(datos.correo, datos.password);
-
-    if (!resultado.success) {
-      setError(resultado.message);
-      return;
-    }
-
-    // Guardar sesión y token JWT (persistencia ante recargas de página)
-    localStorage.setItem("tokenJWT", resultado.usuario.token);
-    localStorage.setItem("usuarioLogueado", JSON.stringify(resultado.usuario));
-
-    // Restricción de acceso basada en roles (Pauta EP3)
-    if (resultado.usuario.rol === "ROLE_ADMIN" || resultado.usuario.rol === "ROLE_VENDEDOR") {
+    // TODO: reemplazar por el rol que entregue el backend.
+    if (datos.correo.toLowerCase().includes("admin")) {
       navigate("/admin");
     } else {
       navigate("/");
@@ -70,7 +53,6 @@ export default function Login() {
                 />
               </div>
 
-              {/* Mensaje de error: solo se muestra cuando hay uno */}
               {error && <div className="alert alert-danger rounded-0">{error}</div>}
 
               <button type="submit" className="btn btn-dark w-100 fw-bold py-2 rounded-0">

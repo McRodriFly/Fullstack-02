@@ -1,11 +1,10 @@
-/* Tarjeta de producto: componente reutilizable.
-   Recibe el producto por PROPS y la función onAgregar (manejo de props,
-   requisito IE2.1.2 de la rúbrica). */
+/* Tarjeta de producto. No conoce el carrito: avisa el clic con onAgregar(producto,
+   precioFinal) y el padre decide qué hacer. Se reutiliza en Home, Categorías y Ofertas. */
 import { Link } from "react-router-dom";
 import { formatearPrecio } from "../data/productos";
 
 export default function ProductCard({ producto, onAgregar }) {
-  // Si el producto está en oferta mostramos el precio rebajado y el original tachado
+  // precioOferta en 0 se trata como "sin oferta" aunque el flag esté activo.
   const enOferta = producto.oferta && producto.precioOferta > 0;
   const precioFinal = enOferta ? producto.precioOferta : producto.precio;
 
@@ -27,7 +26,6 @@ export default function ProductCard({ producto, onAgregar }) {
           </Link>
           <p className="card-text text-muted mb-2">{producto.categoria}</p>
 
-          {/* Renderizado condicional: precio normal vs. precio de oferta */}
           {enOferta ? (
             <p className="mb-3">
               <span className="text-muted text-decoration-line-through me-2">

@@ -1,10 +1,9 @@
-/* Vista de compra exitosa: se muestra un resumen del pedido
-   cuando el pago se procesa correctamente (vista nueva EP2). */
+/* /compra-exitosa — resumen del pedido enviado por Checkout en location.state.
+   Si se entra directo a la URL, state es null y solo se muestra el mensaje. */
 import { Link, useLocation } from "react-router-dom";
 import { formatearPrecio } from "../data/productos";
 
 export default function CompraExitosa() {
-  // Los datos del pedido llegan por el estado de navegación del router
   const { state } = useLocation();
 
   return (

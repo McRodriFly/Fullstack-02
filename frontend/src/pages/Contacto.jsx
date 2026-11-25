@@ -1,5 +1,4 @@
-/* Vista de Contacto: formulario con validación React.
-   Migrado de views_tienda/contacto.html + js/validaciones.js. */
+/* /contacto — formulario validado con validarContacto. */
 import { useState } from "react";
 import { validarContacto } from "../utils/validadores";
 
@@ -20,7 +19,6 @@ export default function Contacto() {
     setError(mensaje);
     if (mensaje) return;
 
-    // Éxito: limpiamos el formulario y avisamos en pantalla (sin alert)
     setDatos(FORM_INICIAL);
     setEnviado(true);
   }
@@ -70,7 +68,6 @@ export default function Contacto() {
               <div className="form-text">Máximo 500 caracteres.</div>
             </div>
 
-            {/* Renderizado condicional: error o confirmación de envío */}
             {error && <div className="alert alert-danger rounded-0">{error}</div>}
             {enviado && !error && (
               <div className="alert alert-success rounded-0">

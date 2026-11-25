@@ -1,6 +1,8 @@
-/* Vista de Categorías: separa los productos por categoría con filtro
-   interactivo (vista nueva de la EP2: interactividad mejorada). */
+/* /categorias — catálogo filtrado por categoría.
+   El filtro vive en la URL (?cat=Gorras) con useSearchParams y no en useState:
+   el enlace se puede compartir, sobrevive a un recargo y funciona con "atrás". */
 import { useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import ProductCard from "../components/ProductCard";
 import { obtenerProductos, obtenerCategorias } from "../data/productos";
 import { useCarrito } from "../context/CarritoContext";
@@ -8,15 +10,19 @@ import { useCarrito } from "../context/CarritoContext";
 export default function Categorias() {
   const [productos] = useState(() => obtenerProductos());
   const [categorias] = useState(() => obtenerCategorias());
-  // Estado del filtro activo: "todas" o el nombre de una categoría
-  const [categoriaActiva, setCategoriaActiva] = useState("todas");
+  // Sin ?cat se muestran todas.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const categoriaActiva = searchParams.get("cat") || "todas";
+
+  function cambiarCategoria(categoria) {
+    setSearchParams(categoria === "todas" ? {} : { cat: categoria });
+  }
   const { agregarAlCarrito } = useCarrito();
 
   function handleAgregar(producto, precioFinal) {
     agregarAlCarrito({ ...producto, precio: precioFinal });
   }
 
-  // Filtrado según la categoría seleccionada
   const productosFiltrados =
     categoriaActiva === "todas"
       ? productos
@@ -29,11 +35,10 @@ export default function Categorias() {
         Explora la colección oficial según el tipo de producto.
       </p>
 
-      {/* Botones de filtro: uno por categoría + "Todas" */}
       <div className="d-flex flex-wrap justify-content-center gap-2 mb-5">
         <button
           className={`btn rounded-0 fw-bold ${categoriaActiva === "todas" ? "btn-danger" : "btn-outline-dark"}`}
-          onClick={() => setCategoriaActiva("todas")}
+          onClick={() => cambiarCategoria("todas")}
         >
           TODAS
         </button>
@@ -41,7 +46,7 @@ export default function Categorias() {
           <button
             key={categoria}
             className={`btn rounded-0 fw-bold ${categoriaActiva === categoria ? "btn-danger" : "btn-outline-dark"}`}
-            onClick={() => setCategoriaActiva(categoria)}
+            onClick={() => cambiarCategoria(categoria)}
           >
             {categoria.toUpperCase()}
           </button>

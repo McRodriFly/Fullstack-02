@@ -1,5 +1,4 @@
-/* Vista de Ofertas: muestra solo los productos marcados como oferta
-   en la fuente de datos (requisito EP2: nueva vista de negocio). */
+/* /ofertas — productos con oferta: true. */
 import { useState } from "react";
 import ProductCard from "../components/ProductCard";
 import { obtenerOfertas } from "../data/productos";

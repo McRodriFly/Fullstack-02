@@ -1,6 +1,5 @@
-/* Vista de Registro: formulario con validación de RUT chileno (módulo 11),
-   selectores región/comuna encadenados y confirmación de contraseña.
-   Migrado de views_tienda/registro.html + js/validaciones.js + js/registro.js. */
+/* /registro — alta de cliente con validación de RUT y selects región/comuna
+   encadenados. El registro es simulado: si es válido, redirige a /login. */
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { validarRegistro } from "../utils/validadores";
@@ -22,13 +21,12 @@ export default function Registro() {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  // Comunas disponibles según la región seleccionada (select encadenado)
   const comunasDisponibles =
     datosUbicacion.find((d) => d.region === datos.region)?.comunas || [];
 
   function handleChange(e) {
     const { name, value } = e.target;
-    // Al cambiar la región, la comuna seleccionada se reinicia
+    // Si cambia la región, la comuna anterior deja de ser válida.
     if (name === "region") {
       setDatos({ ...datos, region: value, comuna: "" });
     } else {
@@ -42,7 +40,6 @@ export default function Registro() {
     setError(mensaje);
     if (mensaje) return;
 
-    // Registro simulado OK → redirigimos al login
     navigate("/login");
   }
 
@@ -115,7 +112,6 @@ export default function Registro() {
                     ))}
                   </select>
                 </div>
-                {/* Selector de comuna: deshabilitado hasta elegir región (como en la EP1) */}
                 <div className="col-12 col-md-6">
                   <label htmlFor="comuna" className="form-label">Comuna</label>
                   <select

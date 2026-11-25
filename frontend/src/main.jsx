@@ -3,11 +3,11 @@ import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import App from "./App.jsx";
 
-// Bootstrap CSS + JS (para el navbar colapsable en móvil)
+// Solo el CSS de Bootstrap. Los menús colapsables se manejan con estado
+// de React (ver Navbar y AdminLayout), así que no se carga bootstrap.bundle.js.
 import "bootstrap/dist/css/bootstrap.min.css";
-import "bootstrap/dist/js/bootstrap.bundle.min.js";
 
-// Estilos propios migrados de la EP1 (sobreescriben a Bootstrap por cascada)
+// Íconos y estilos propios: van después de Bootstrap para poder sobrescribirlo.
 import "bootstrap-icons/font/bootstrap-icons.css";
 import "./styles/styles.css";
 import "./styles/carrito.css";
