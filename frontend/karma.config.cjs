@@ -74,7 +74,8 @@ module.exports = function (config) {
         { type: "text" },
       ],
       // npm test falla si la cobertura global baja del 90 % o si un archivo crítico
-      // (sesión, cliente HTTP, contextos, validaciones y roles) baja del 100 %.
+      // (sesión, cliente HTTP, contextos, hooks, guardia de rutas, validaciones y roles)
+      // baja del 100 %.
       check: {
         global: { statements: 90, branches: 90, functions: 90, lines: 90 },
         each: {
@@ -83,6 +84,8 @@ module.exports = function (config) {
             "src/services/**/*.js": { statements: 100, branches: 100, functions: 100, lines: 100 },
             "src/context/**/*.jsx": { statements: 100, branches: 100, functions: 100, lines: 100 },
             "src/utils/**/*.js": { statements: 100, branches: 100, functions: 100, lines: 100 },
+            "src/hooks/**/*.js": { statements: 100, branches: 100, functions: 100, lines: 100 },
+            "src/components/RutaProtegida.jsx": { statements: 100, branches: 100, functions: 100, lines: 100 },
           },
         },
       },

@@ -6,6 +6,7 @@ import { useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useCarrito } from "../context/CarritoContext";
 import { useAuth } from "../context/AuthContext";
+import { PERMISOS, rutaInicialPara, tieneRol } from "../utils/roles";
 
 const ENLACES = [
   { ruta: "/", texto: "Home" },
@@ -60,6 +61,13 @@ export default function Navbar() {
                 </NavLink>
               </li>
             ))}
+            {tieneRol(usuario, PERMISOS.entrarAlPanel) && (
+              <li className="nav-item">
+                <NavLink className="nav-link" to={rutaInicialPara(usuario)} onClick={cerrarMenu}>
+                  <i className="bi bi-speedometer2 me-1"></i>Panel
+                </NavLink>
+              </li>
+            )}
             {usuario ? (
               <>
                 <li className="nav-item">

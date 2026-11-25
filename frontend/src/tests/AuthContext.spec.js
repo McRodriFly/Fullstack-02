@@ -93,9 +93,9 @@ describe("AuthContext", () => {
 });
 
 describe("rutaInicialPara", () => {
-  it("administrador y vendedor van al panel; el cliente, a la tienda", () => {
+  it("el administrador va al resumen, el vendedor a los productos y el cliente a la tienda", () => {
     expect(rutaInicialPara(USUARIOS.admin)).toBe("/admin");
-    expect(rutaInicialPara(USUARIOS.vendedor)).toBe("/admin");
+    expect(rutaInicialPara(USUARIOS.vendedor)).toBe("/admin/productos");
     expect(rutaInicialPara(USUARIOS.cliente)).toBe("/");
   });
 });

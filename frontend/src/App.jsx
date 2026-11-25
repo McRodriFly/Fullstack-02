@@ -23,6 +23,10 @@ import AdminLayout from "./pages/admin/AdminLayout";
 import AdminHome from "./pages/admin/AdminHome";
 import AdminProductos from "./pages/admin/AdminProductos";
 import AdminUsuarios from "./pages/admin/AdminUsuarios";
+import AdminOrdenes from "./pages/admin/AdminOrdenes";
+import AdminOrdenDetalle from "./pages/admin/AdminOrdenDetalle";
+import RutaProtegida from "./components/RutaProtegida";
+import { PERMISOS } from "./utils/roles";
 
 export default function App() {
   // /admin usa su propio layout con sidebar, sin el navbar ni el footer de la tienda.
@@ -48,14 +52,46 @@ export default function App() {
                 <Route path="/contacto" element={<Contacto />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/registro" element={<Registro />} />
-                {/* Rutas anidadas: AdminLayout renderiza cada subruta en su <Outlet /> */}
-                <Route path="/admin" element={<AdminLayout />}>
-                  <Route index element={<AdminHome />} />
-                  <Route path="productos" element={<AdminProductos />} />
-                  <Route path="usuarios" element={<AdminUsuarios />} />
+                {/* Panel: solo administrador y vendedor. AdminLayout renderiza cada subruta
+                    en su <Outlet />, y cada una exige además su propio permiso. */}
+                <Route
+                  path="/admin"
+                  element={
+                    <RutaProtegida roles={PERMISOS.entrarAlPanel}>
+                      <AdminLayout />
+                    </RutaProtegida>
+                  }
+                >
+                  {/* El vendedor no ve el resumen: entra directo a los productos. */}
+                  <Route
+                    index
+                    element={
+                      <RutaProtegida roles={PERMISOS.verResumen} siNoPermitido="/admin/productos">
+                        <AdminHome />
+                      </RutaProtegida>
+                    }
+                  />
+                  <Route element={<RutaProtegida roles={PERMISOS.verProductos} />}>
+                    <Route path="productos" element={<AdminProductos />} />
+                  </Route>
+                  <Route element={<RutaProtegida roles={PERMISOS.verOrdenes} />}>
+                    <Route path="ordenes" element={<AdminOrdenes />} />
+                    <Route path="ordenes/:id" element={<AdminOrdenDetalle />} />
+                  </Route>
+                  <Route element={<RutaProtegida roles={PERMISOS.gestionarUsuarios} />}>
+                    <Route path="usuarios" element={<AdminUsuarios />} />
+                  </Route>
                 </Route>
                 <Route path="/carrito" element={<Carrito />} />
-                <Route path="/checkout" element={<Checkout />} />
+                {/* Pagar exige sesión (el backend registra la compra a nombre del usuario). */}
+                <Route
+                  path="/checkout"
+                  element={
+                    <RutaProtegida roles={PERMISOS.comprar}>
+                      <Checkout />
+                    </RutaProtegida>
+                  }
+                />
                 <Route path="/compra-exitosa" element={<CompraExitosa />} />
                 <Route path="/compra-fallida" element={<CompraFallida />} />
                 <Route path="*" element={<NoEncontrado />} />

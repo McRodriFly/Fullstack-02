@@ -22,6 +22,7 @@ describe("Login: redirección según rol", () => {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/admin" element={<h1>Panel admin</h1>} />
+        <Route path="/admin/productos" element={<h1>Panel productos</h1>} />
         <Route path="/" element={<h1>Tienda</h1>} />
       </Routes>,
       "/login"
@@ -42,10 +43,10 @@ describe("Login: redirección según rol", () => {
     expect(JSON.parse(localStorage.getItem(CLAVE_SESION)).usuario.rol).toBe("ROLE_ADMIN");
   });
 
-  it("el vendedor también entra al panel", async () => {
+  it("el vendedor entra al panel directo a los productos", async () => {
     simularBackend({ "POST /auth/login": () => respuestaJson(200, respuestaSesion(USUARIOS.vendedor)) });
     ingresarComo("vendedor@duoc.cl");
-    expect(await screen.findByText("Panel admin")).toBeTruthy();
+    expect(await screen.findByText("Panel productos")).toBeTruthy();
   });
 
   it("el cliente vuelve a la tienda", async () => {

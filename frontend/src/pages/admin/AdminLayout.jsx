@@ -1,9 +1,20 @@
 /* Layout de /admin: sidebar + <Outlet /> donde se renderiza cada subruta.
    Bajo md el sidebar pasa a barra superior y los enlaces se muestran con el
-   botón MENÚ (estado menuAbierto); desde md siempre están visibles. */
+   botón MENÚ (estado menuAbierto); desde md siempre están visibles.
+   El menú muestra solo las secciones que el rol puede ver (utils/roles.js); el
+   acceso a cada ruta lo controla RutaProtegida en App.jsx. */
 import { useState } from "react";
 import { NavLink, Outlet, Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import { PERMISOS, nombreDelRol, tieneRol } from "../../utils/roles";
+
+// end en /admin: sin esto también quedaría activo en las subrutas.
+const SECCIONES = [
+  { ruta: "/admin", texto: "Resumen Paddock", icono: "bi-speedometer2", roles: PERMISOS.verResumen, end: true },
+  { ruta: "/admin/productos", texto: "Productos", icono: "bi-box-seam-fill", roles: PERMISOS.verProductos },
+  { ruta: "/admin/ordenes", texto: "Órdenes de Compra", icono: "bi-receipt", roles: PERMISOS.verOrdenes },
+  { ruta: "/admin/usuarios", texto: "Mantenedor Usuarios", icono: "bi-people-fill", roles: PERMISOS.gestionarUsuarios },
+];
 
 export default function AdminLayout() {
   const [menuAbierto, setMenuAbierto] = useState(false);
@@ -30,6 +41,9 @@ export default function AdminLayout() {
                   AUDI <span className="text-danger">F1</span>
                 </h4>
                 <p className="text-secondary small mb-0">PANEL DE CONTROL</p>
+                <p className="text-danger small fw-bold text-uppercase mb-0" data-testid="rol-panel">
+                  {nombreDelRol(usuario.rol)}
+                </p>
               </div>
               <button
                 type="button"
@@ -48,43 +62,30 @@ export default function AdminLayout() {
               className={`flex-column flex-grow-1 mt-3 mt-md-0 ${menuAbierto ? "d-flex" : "d-none"} d-md-flex`}
             >
               <ul className="nav flex-column mb-auto">
-                <li className="nav-item">
-                  {/* end: sin esto también quedaría activo en /admin/productos y /admin/usuarios */}
-                  <NavLink end className="nav-link text-uppercase py-3" to="/admin" onClick={cerrarMenu}>
-                    <i className="bi bi-speedometer2 me-2"></i>Resumen Paddock
-                  </NavLink>
-                </li>
-                <li className="nav-item">
-                  <NavLink className="nav-link text-uppercase py-3" to="/admin/productos" onClick={cerrarMenu}>
-                    <i className="bi bi-box-seam-fill me-2"></i>Mantenedor Productos
-                  </NavLink>
-                </li>
-                <li className="nav-item">
-                  <NavLink className="nav-link text-uppercase py-3" to="/admin/usuarios" onClick={cerrarMenu}>
-                    <i className="bi bi-people-fill me-2"></i>Mantenedor Usuarios
-                  </NavLink>
-                </li>
+                {SECCIONES.filter((s) => tieneRol(usuario, s.roles)).map((s) => (
+                  <li className="nav-item" key={s.ruta}>
+                    <NavLink end={s.end} className="nav-link text-uppercase py-3" to={s.ruta} onClick={cerrarMenu}>
+                      <i className={`bi ${s.icono} me-2`}></i>{s.texto}
+                    </NavLink>
+                  </li>
+                ))}
               </ul>
 
               <ul className="nav flex-column mt-auto mb-4">
-                {usuario && (
-                  <li className="nav-item text-secondary small px-3 pb-2" data-testid="usuario-panel">
-                    <i className="bi bi-person-circle me-2"></i>
-                    {usuario.nombre}
-                  </li>
-                )}
+                <li className="nav-item text-secondary small px-3 pb-2" data-testid="usuario-panel">
+                  <i className="bi bi-person-circle me-2"></i>
+                  {usuario.nombre}
+                </li>
                 <li className="nav-item">
                   <Link className="nav-link text-danger fw-bold text-uppercase py-3" to="/">
                     <i className="bi bi-box-arrow-left me-2"></i>Volver a la Tienda
                   </Link>
                 </li>
-                {usuario && (
-                  <li className="nav-item">
-                    <button type="button" className="nav-link btn btn-link text-light text-uppercase py-3" onClick={salir}>
-                      <i className="bi bi-power me-2"></i>Cerrar Sesión
-                    </button>
-                  </li>
-                )}
+                <li className="nav-item">
+                  <button type="button" className="nav-link btn btn-link text-light text-uppercase py-3" onClick={salir}>
+                    <i className="bi bi-power me-2"></i>Cerrar Sesión
+                  </button>
+                </li>
               </ul>
             </div>
           </div>

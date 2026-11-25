@@ -1,8 +1,9 @@
 /* /login — inicio de sesión contra el backend (POST /api/v1/auth/login).
    Valida el formulario antes de enviarlo; el backend comprueba la contraseña y
-   devuelve el rol, que decide a dónde se redirige (ver rutaInicialPara). */
+   devuelve el rol, que decide a dónde se redirige (ver rutaInicialPara). Si se
+   llegó aquí desde una ruta protegida, vuelve a ella (state.desde). */
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { validarLogin } from "../utils/validadores";
 import { useAuth } from "../context/AuthContext";
 import { rutaInicialPara } from "../utils/roles";
@@ -12,6 +13,7 @@ export default function Login() {
   const [error, setError] = useState("");
   const [enviando, setEnviando] = useState(false);
   const navigate = useNavigate();
+  const { state } = useLocation();
   const { iniciarSesion } = useAuth();
 
   function handleChange(e) {
@@ -27,7 +29,8 @@ export default function Login() {
     setEnviando(true);
     try {
       const usuario = await iniciarSesion(datos.correo.trim(), datos.password);
-      navigate(rutaInicialPara(usuario));
+      // replace: el botón "atrás" no vuelve al formulario de login.
+      navigate(state?.desde ?? rutaInicialPara(usuario), { replace: true });
     } catch (err) {
       // Credenciales incorrectas o servidor caído: el mensaje ya viene listo para mostrarse.
       setError(err.message);
