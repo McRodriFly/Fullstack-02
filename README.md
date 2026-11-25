@@ -100,7 +100,7 @@ npm ci
 npm test
 ```
 
-La ejecución espera `TOTAL: 192 SUCCESS` y falla si la cobertura global baja del 90 % o si la de un archivo crítico (sesión, cliente HTTP, contextos, guardia de rutas, validaciones y roles) baja del 100 %.
+La ejecución espera `TOTAL: 215 SUCCESS` y falla si la cobertura global baja del 90 % o si la de un archivo crítico (sesión, cliente HTTP, contextos, guardia de rutas, validaciones y roles) baja del 100 %.
 
 **Backend** (JUnit, Mockito, MockMvc y Testcontainers; requiere Docker en ejecución):
 
