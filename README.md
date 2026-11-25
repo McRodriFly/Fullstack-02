@@ -14,7 +14,7 @@ Fullstack-02/
 
 La arquitectura del backend está descrita en [`backend/ARQUITECTURA.md`](backend/ARQUITECTURA.md). Para continuar el trabajo desde otro equipo, ver [`RETOMAR_EVA3.md`](RETOMAR_EVA3.md).
 
-> **Estado:** el backend está en desarrollo. Compila y su estructura modular se verifica con un test, pero todavía no arranca (`spring-boot:run`) porque faltan las migraciones de la base de datos.
+> **Estado:** el backend está completo (API REST con JWT, roles, Swagger y 143 pruebas). El frontend trae el catálogo y la tienda de la EP2 con datos simulados en `localStorage`; su conexión con el backend es la Fase 4 y aún no está hecha.
 
 ---
 
@@ -24,7 +24,7 @@ La arquitectura del backend está descrita en [`backend/ARQUITECTURA.md`](backen
 
 0. **Base de datos (MySQL 8.4 en Docker):** requiere Docker Desktop.
    ```bash
-   cp .env.example .env        # editar las contraseñas
+   cp .env.example .env        # editar las contraseñas y generar JWT_SECRET (ver .env.example)
    docker compose up -d
    ```
 
@@ -49,19 +49,22 @@ La arquitectura del backend está descrita en [`backend/ARQUITECTURA.md`](backen
 cd frontend && npm ci && npm test
 ```
 
-La suite ampliada (94 pruebas, 100 % de cobertura) está en la rama `backup` y se integrará a esta rama junto con la conexión al backend.
+Resultado esperado: `TOTAL: 94 SUCCESS`, con 100 % de cobertura. Requiere Node.js 26 y Google Chrome.
 
-**Backend** (verifica los límites entre módulos; no necesita base de datos). En Windows, `JAVA_HOME` debe apuntar al JDK 21:
+**Backend** (JUnit, Mockito, MockMvc y Testcontainers; requiere Docker en ejecución). En Windows, `JAVA_HOME` debe apuntar al JDK 21:
 
 ```bash
-cd backend && ./mvnw -B clean -Dtest=ModularidadTest test
+cd backend && ./mvnw -B clean test
 ```
+
+Sin Docker se pueden correr solo las pruebas que no usan base de datos:
+`./mvnw -B clean test -Dtest="*ServiceTest,*ControllerTest,CuponTest,ModularidadTest"`.
 
 ---
 
 ## 🔑 Credenciales de Prueba
 
-Se crearán con los datos iniciales de la base de datos (aún no existen):
+Las crea la migración de datos iniciales al arrancar el backend (usables en Swagger UI con `POST /api/v1/auth/login`):
 
 - **Administrador:** `admin@duoc.cl` / `1234` (acceso al panel `/admin`)
 - **Vendedor:** `vendedor@duoc.cl` / `1234`

@@ -1,6 +1,6 @@
 # Retomar la Evaluación Parcial 3 (DSY1104) desde otro equipo
 
-Documento de traspaso: contiene todo lo necesario para continuar el trabajo sin depender de la sesión ni del PC donde se inició. Última actualización: 2026-11-24 (Fase 3).
+Documento de traspaso: contiene todo lo necesario para continuar el trabajo sin depender de la sesión ni del PC donde se inició. Última actualización: 2026-11-25 (Fase 4.1).
 
 ---
 
@@ -35,7 +35,13 @@ Documento de traspaso: contiene todo lo necesario para continuar el trabajo sin 
   - Los 401 y 403 de los filtros también salen con el formato `ApiError`.
   - La clave se lee de `JWT_SECRET` en el `.env` (ver `.env.example`). **Sin ella el backend no arranca.**
 
-**Siguiente paso: Fase 4, parte 1** (traer el frontend de `backup`). Ver la tabla de abajo.
+- **Frontend de `backup` integrado** (Fase 4.1): se hizo con un `git merge` de `origin/backup`, que conserva sus 9 commits. Trae las 94 pruebas con 100 % de cobertura, ErrorBoundary, página 404, menús responsivos y el filtro de categorías en la URL. Se verificó con Node 26.13: `npm test` da `TOTAL: 94 SUCCESS`, y `npm run lint` y `npm run build` pasan sin advertencias.
+  - `Home.jsx` y `Login.jsx` quedaron con la versión de `backup` (datos simulados en `localStorage`); las de `eva3_dev` llamaban a endpoints que no existen.
+  - Se retiró `services/api.js` (cliente antiguo, sin usos). El cliente nuevo se escribe en 4.2.
+  - `frontend/.node-version` pasó a 26 y el README del frontend se ajustó a la nueva estructura.
+  - **Hoy el frontend no usa el backend**: tienda, carrito, login y administración funcionan con `localStorage`. Conectarlos es la Fase 4.2 a 4.4.
+
+**Siguiente paso: Fase 4, parte 2** (cliente HTTP, `AuthContext` y sesión persistente). Requiere cambiar a **Opus 5.5 con esfuerzo alto** (`/model` y `/effort`).
 
 Lo que el frontend necesita saber de la API (Fase 4):
 
@@ -55,8 +61,8 @@ Lo que el frontend necesita saber de la API (Fase 4):
 | ✅ 6 | Controladores, DTOs y anotaciones de Swagger | Sonnet 5.5 | bajo o medio |
 | ✅ 7 | Pruebas: Mockito, MockMvc y Testcontainers | Sonnet 5.5 | medio |
 | ✅ Fase 3 | JWT, BCrypt, filtro, roles y refresco de token | Opus 5.5 | alto |
-| **4.1** | Traer el frontend de `backup` a `eva3_dev` sin perder sus 94 pruebas | Sonnet 5.5 | medio |
-| 4.2 | Cliente HTTP con `Bearer` y refresco automático, `AuthContext`, sesión persistente y cierre de sesión | **Opus 5.5** | **alto** |
+| ✅ 4.1 | Traer el frontend de `backup` a `eva3_dev` sin perder sus 94 pruebas | Sonnet 5.5 | medio |
+| **4.2** | Cliente HTTP con `Bearer` y refresco automático, `AuthContext`, sesión persistente y cierre de sesión | **Opus 5.5** | **alto** |
 | 4.3 | Rutas protegidas y menús según el rol (administrador, vendedor, cliente) | Sonnet 5.5 | medio |
 | 4.4 | Pasar las páginas de localStorage a la API: catálogo, detalle, registro, checkout y CRUD de administración | Sonnet 5.5 | medio |
 
@@ -71,7 +77,7 @@ Después siguen las Fases 5 (pruebas de frontend) y 6 (documentación); ver la s
 - Compran el **cliente y el administrador** (el administrador tiene acceso total); el vendedor no compra.
 - Token de refresco **JWT sin estado** (no hay tabla de tokens); acceso de 15 minutos y refresco de 7 días.
 - Spring Boot **4.1.3** y Java **21**. (La 4.2.0 salió el 19-nov-2026; se prefirió la 4.1.x por ser una versión `.0` recién publicada.)
-- El frontend mejorado de la rama `backup` **todavía no se trae**; se integra al llegar a la Fase 4.
+- El frontend mejorado de la rama `backup` ya está integrado en `eva3_dev` (Fase 4.1).
 
 ### Pendiente de decidir
 
@@ -272,15 +278,15 @@ Leyenda: 🔴 no cumple · 🟠 parcial · 🟡 en curso · 🟢 listo en el bac
 |---|---|---|
 | IE3.1.1 Backend + BD | 🟢 | Monolito modular con MySQL 8.4, Flyway, entidades, servicios con reglas de negocio y pruebas (Mockito, MockMvc y Testcontainers). |
 | IE3.2.1 API REST + Swagger | 🟢 | CRUD bajo `/api/v1`, documentado en Swagger UI (`/swagger-ui.html`) con el botón *Authorize* para el token. |
-| IE3.2.2 Integración | 🔴 | `frontend/src/services/api.js` tiene 3 funciones. Solo `Home` pide productos al backend (con respaldo en localStorage) y `Login` usa la API. Admin, categorías, ofertas, detalle, registro y checkout siguen contra localStorage (`src/data/*.js`). |
+| IE3.2.2 Integración | 🔴 | El frontend no llama al backend: catálogo, carrito, login, registro, checkout y administración funcionan con `localStorage` (`src/data/*.js`). Se resuelve en 4.2 a 4.4. |
 | IE3.3.1 JWT + roles | 🟢 | Spring Security con JWT (acceso y refresco), BCrypt y `@PreAuthorize` por rol en cada endpoint. |
-| IE3.3.2 Sesión en el frontend | 🟠 | Guarda `tokenJWT` y `usuarioLogueado` en localStorage (persiste al recargar). No envía `Authorization: Bearer`, no valida expiración, no hay logout visible ni contexto de sesión. |
+| IE3.3.2 Sesión en el frontend | 🔴 | El login simulado no guarda token ni sesión. Se resuelve en 4.2 (`AuthContext`, `Authorization: Bearer`, refresco y cierre de sesión). |
 | IE3.3.3 Restricciones en el frontend | 🔴 | `/admin` no tiene guardia: se entra escribiendo la URL. El Vendedor ve lo mismo que el Administrador. |
 | Presentación | 🟠 | El guion existente es de la EP2. Falta guion EP3. |
 
 Otros hallazgos:
 
-- **El frontend de `eva3_dev` no tiene el trabajo de la EP2.** Viene de `dev` (basado en el commit `d73b6d7`): sin ErrorBoundary, 404 ni las 94 pruebas, y con comentarios antiguos como "Migrado de…". Está resuelto en `backup`.
+- **El frontend de `eva3_dev` ya incluye el trabajo de la EP2** (94 pruebas, ErrorBoundary, 404 y menús responsivos), traído desde `backup` en la Fase 4.1.
 - **Documentos EP3 del repo** (`frontend/docs/Informe_Avance_EP3.pdf`, `Manual_de_Usuario_Audi_F1_EP3.pdf`, `Guion_Presentacion_Audi_F1.pdf`): los tres dan error de lectura (PDF dañado) y describen microservicios y H2. Se regeneran en la Fase 6.
 - **Pruebas del backend:** `.mvnw.cmd -B clean test` necesita Docker en ejecución (Testcontainers levanta su propio MySQL; no usa el de `docker-compose.yml`). Sin Docker solo se pueden correr las pruebas sin base de datos: `-Dtest="*ServiceTest,*ControllerTest,CuponTest,ModularidadTest"`.
 - `docs/coverage.rar` (informe del colega) está en `frontend/docs/`.
@@ -301,7 +307,7 @@ La rama `backup` contiene 9 commits sobre `d73b6d7`:
 8. `refactor: comentarios técnicos y umbral de cobertura en 90 %`
 9. `docs: actualizar ERS, cobertura y README`
 
-En `backup` el frontend está en la raíz (`src/`, `package.json`); en `eva3_dev` está en `frontend/`. No sirve un merge directo: hay que traer los archivos por partes (`git checkout backup -- <ruta>` y moverlos a `frontend/`) o hacer `cherry-pick` resolviendo los renombres. La configuración de cobertura (Karma + Istanbul, umbral de 90 %) escribe el informe en `frontend/coverage/`, que Git ignora.
+Integrada en `eva3_dev` con `git merge origin/backup` (Fase 4.1). Como `backup` tiene el frontend en la raíz y `eva3_dev` en `frontend/`, Git llevó los archivos a `frontend/` por detección de renombres y los conflictos se resolvieron a mano. La configuración de cobertura (Karma + Istanbul, umbral de 90 %) escribe el informe en `frontend/coverage/`, que Git ignora.
 
 ---
 
@@ -326,7 +332,7 @@ Están completas en **`backend/ARQUITECTURA.md`**. Resumen:
 | 1 | Infraestructura: `docker-compose.yml`, `.env.example`, `pom.xml`, `application.yml` | ✅ |
 | 2 | Monolito modular: arquitectura ✅, esqueleto ✅, esquema y semilla ✅, entidades y repositorios ✅, servicios ✅, controladores y Swagger ✅, pruebas ✅ | ✅ Completa (partes 1 a 7) |
 | 3 | Seguridad: JWT, BCrypt, filtro, roles, `@PreAuthorize`, refresco de token | ✅ |
-| 4 | Integración con el frontend: cliente HTTP, `AuthContext`, rutas por rol, migrar datos simulados a la API. Traer el trabajo de `backup` | Pendiente |
+| 4 | Integración con el frontend: 4.1 traer `backup` ✅; 4.2 cliente HTTP y `AuthContext`; 4.3 rutas por rol; 4.4 migrar datos simulados a la API | En curso |
 | 5 | Calidad: pruebas de backend ✅ (Mockito, MockMvc, Testcontainers) y de frontend (sesión y guardias, pendiente) | En curso |
 | 6 | Documentación: ERS, manual con pantallazos (Anexo 4), documentación de APIs (Anexo 3), documento de integración (Anexo 2), guion EP3, README | Pendiente |
 
@@ -395,9 +401,9 @@ cd backend
 
 ### Dónde está cada cosa en el frontend
 
-- `src/services/api.js`: llamadas HTTP al backend (hoy 3 funciones, con la URL fija `http://localhost:8080/api/v1`).
+- `src/services/`: aún no existe; el cliente HTTP al backend (`http://localhost:8080/api/v1`) se crea en 4.2.
 - `src/data/productos.js`, `src/data/usuarios.js`: "base de datos" simulada en localStorage (a reemplazar por la API).
 - `src/context/CarritoContext.jsx`: estado global del carrito.
-- `src/pages/Login.jsx`: guarda `tokenJWT` y `usuarioLogueado`.
+- `src/pages/Login.jsx`: login simulado con `localStorage`; se reemplaza por `POST /auth/login` en 4.2.
 - `src/pages/admin/*`: panel de administración (sin guardia de acceso).
-- `src/tests/`: pruebas Jasmine (en `eva3_dev` solo las 4 originales; las 94 están en `backup`).
+- `src/tests/`: 94 pruebas Jasmine con 100 % de cobertura (`npm test`).
