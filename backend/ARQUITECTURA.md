@@ -19,8 +19,8 @@ com.audi.store/
 ├── AudiF1ApiApplication.java
 ├── shared/                          módulo abierto: lo usan todos, sin entidades de negocio
 │   ├── config/     OpenApiConfig, CorsConfig
-│   ├── security/   SecurityConfig, JwtService, JwtAuthFilter
-│   └── error/      GlobalExceptionHandler, ApiError, RecursoNoEncontradoException
+│   ├── security/   SecurityConfig, JwtService, JwtAuthFilter, UsuarioAutenticado
+│   └── error/      GlobalExceptionHandler, ApiError y las excepciones de negocio
 │
 ├── usuarios/                        cuentas, roles y autenticación
 ├── catalogo/                        productos y categorías
@@ -102,9 +102,10 @@ React ── POST /api/v1/boletas ──▶ ventas/internal/web/BoletaController
 19. Cada detalle de boleta guarda el precio unitario del momento de la compra.
 
 ### Seguridad
-20. Contraseñas con BCrypt. La clave JWT se lee de una variable de entorno y nunca del código.
+20. Contraseñas con BCrypt. La clave JWT se lee de una variable de entorno (`JWT_SECRET`) y nunca del código; sin ella el backend no arranca.
 21. Los permisos se declaran con `@PreAuthorize` en cada endpoint, según la matriz de la sección 5.
 22. Ninguna respuesta incluye contraseñas ni hashes.
+23. El id del usuario que hace la solicitud se toma siempre del token (`@AuthenticationPrincipal UsuarioAutenticado`), nunca del cuerpo ni de la URL.
 
 ## 5. Permisos por rol
 
@@ -115,14 +116,25 @@ React ── POST /api/v1/boletas ──▶ ventas/internal/web/BoletaController
 | `POST`, `PUT`, `DELETE` de productos y categorías | Administrador |
 | `/usuarios` (CRUD) | Administrador |
 | `GET /boletas`, `/boletas/{id}` | Administrador y Vendedor |
-| `POST /boletas`, `GET /boletas/mias` | Cliente (sesión obligatoria) |
+| `POST /boletas`, `GET /boletas/mias` | Cliente y Administrador (sesión obligatoria) |
 
-El Vendedor solo consulta productos y órdenes. El Cliente solo usa la tienda.
+El Vendedor solo consulta productos y órdenes. El Cliente solo usa la tienda. El Administrador tiene acceso total, incluida la compra.
+
+### Sesión con JWT
+
+1. `POST /auth/login` comprueba correo y contraseña (`DaoAuthenticationProvider` + BCrypt) y entrega dos tokens firmados con HMAC-SHA256:
+   - **acceso** (15 minutos): id, correo y rol. Va en `Authorization: Bearer` en cada solicitud.
+   - **refresco** (7 días): solo el id. Únicamente sirve en `POST /auth/refresh`.
+2. `JwtAuthFilter` valida el token de acceso y arma la sesión con su rol, sin consultar la base de datos.
+3. Cuando el acceso vence (401), el frontend canjea el refresco por un par nuevo. El refresco relee al usuario, así que un cambio de rol o una cuenta eliminada se notan, a más tardar, a los 15 minutos.
+4. Los tokens no se guardan en el servidor: cerrar sesión es descartarlos en el frontend.
+
+Un token vencido o alterado no impide usar las rutas públicas; en las protegidas responde 401 con el motivo ("Tu sesión expiró…", "El token de sesión no es válido").
 
 ## 6. Base de datos
 
 - MySQL 8.4 en Docker: `docker compose up -d` desde la raíz del repositorio.
-- Credenciales en `.env` (copiar desde `.env.example`); el backend las lee desde ahí.
+- Credenciales y clave JWT en `.env` (copiar desde `.env.example`); el backend las lee desde ahí.
 - Modelo: `usuarios` → `boletas` → `detalles_boleta` ← `productos` ← `categorias`.
 - Entre módulos las tablas se relacionan con clave foránea en la base de datos, pero las entidades de `ventas` guardan solo el id (`usuarioId`, `productoId`), sin relación JPA hacia entidades de otro módulo.
 - Migraciones actuales: `usuarios/V1` y `V4` (esquema y cuentas iniciales), `catalogo/V2` y `V5` (esquema y catálogo inicial), `ventas/V3` (esquema).
@@ -131,7 +143,7 @@ El Vendedor solo consulta productos y órdenes. El Cliente solo usa la tienda.
 ## 7. Pruebas
 
 - **Servicios:** Mockito, sin base de datos (`*ServiceTest`).
-- **Controladores:** MockMvc con `@WebMvcTest`, incluyendo el acceso por rol (200, 401 y 403) y el formato de error (`*ControllerTest`).
+- **Controladores:** MockMvc con `@WebMvcTest`, incluyendo el acceso por rol (200, 401 y 403) y el formato de error (`*ControllerTest`). `TokenDePrueba` envía tokens reales, así que las pruebas pasan por el filtro JWT; la clave de prueba está en `src/test/resources/application.properties`.
 - **Integración:** `@SpringBootTest` contra un MySQL 8.4 real con Testcontainers (requiere Docker en ejecución). Las clases extienden `IntegracionBase`, que levanta un solo contenedor para toda la ejecución; como se comparte, cada prueba debe dejar los datos como los encontró.
 - **Arquitectura:** `ModularidadTest` ejecuta `ApplicationModules.verify()`. Si se rompe una regla de módulos, el test falla.
 

@@ -1,6 +1,6 @@
 # Retomar la Evaluación Parcial 3 (DSY1104) desde otro equipo
 
-Documento de traspaso: contiene todo lo necesario para continuar el trabajo sin depender de la sesión ni del PC donde se inició. Última actualización: 2026-11-24 (parte 6).
+Documento de traspaso: contiene todo lo necesario para continuar el trabajo sin depender de la sesión ni del PC donde se inició. Última actualización: 2026-11-24 (Fase 3).
 
 ---
 
@@ -13,7 +13,7 @@ Documento de traspaso: contiene todo lo necesario para continuar el trabajo sin 
 - Carpetas renombradas: `frontend/` y `backend/`.
 - Backend corregido: `pom.xml` con Spring Boot 4.1.3, Java 21, Flyway, driver MySQL, springdoc, jjwt 0.13 y Spring Modulith 2.1.3.
 - `docker-compose.yml` con MySQL 8.4, `.env.example` y `application.yml` por variables de entorno.
-- **`backend/ARQUITECTURA.md`**: la arquitectura acordada, con las 22 reglas. Leerlo antes de escribir código de backend.
+- **`backend/ARQUITECTURA.md`**: la arquitectura acordada, con las 23 reglas. Leerlo antes de escribir código de backend.
 - Esqueleto de los módulos `usuarios`, `catalogo`, `ventas` y `shared`, con sus contratos públicos (`CatalogoApi`, `UsuariosApi`) y el test `ModularidadTest` (pasa).
 - **Migraciones Flyway** en `db/migration/<módulo>/` (parte 3 y 4): `usuarios/V1` y `V4`, `catalogo/V2` y `V5`, `ventas/V3`. Crean las 5 tablas con claves foráneas, restricciones `CHECK` e índices, y siembran las 3 cuentas (contraseña con BCrypt) y el catálogo de 12 productos. Flyway las aplica al arrancar el backend.
 - **Entidades JPA y repositorios** de los tres módulos. Hibernate valida el esquema al arrancar. `ventas` guarda `usuarioId` y `productoId` sin relación JPA hacia otros módulos.
@@ -27,14 +27,22 @@ Documento de traspaso: contiene todo lo necesario para continuar el trabajo sin 
   - **Controladores con MockMvc:** la matriz de roles (200, 401 y 403), el formato de error y que ninguna respuesta exponga contraseñas.
   - **Integración con Testcontainers (`mysql:8.4`):** migraciones, restricciones de la base, checkout completo, reversión del stock y dos compras simultáneas. Usan un contenedor propio, independiente del `docker-compose.yml`, y necesitan Docker en ejecución.
 
-**Siguiente paso: Fase 3** (seguridad: JWT, BCrypt, filtro, roles y refresco de token). Requiere cambiar a **Opus 5.5 con esfuerzo alto o muy alto** (`/model` y `/effort`).
+- **Seguridad con JWT** (Fase 3): 143 pruebas, todas en verde.
+  - `JwtService` (jjwt 0.13, HMAC-SHA256) emite un token de **acceso de 15 minutos** (id, correo y rol) y uno de **refresco de 7 días** (solo el id). Sin estado: no se guardan en la base; cerrar sesión es borrarlos en el frontend.
+  - `JwtAuthFilter` arma la sesión con el rol del token, sin consultar la base. Un token vencido o alterado no bloquea las rutas públicas; en las protegidas responde 401 con el motivo.
+  - `POST /auth/login`, `/auth/registro` (crea un cliente y deja la sesión iniciada) y `/auth/refresh` (relee al usuario: el token nuevo trae su rol actual).
+  - `POST /boletas` y `GET /boletas/mias` para **cliente y administrador**, con el id del comprador tomado del token. `PUT` y `DELETE /usuarios/{id}` para el administrador.
+  - Los 401 y 403 de los filtros también salen con el formato `ApiError`.
+  - La clave se lee de `JWT_SECRET` en el `.env` (ver `.env.example`). **Sin ella el backend no arranca.**
 
-Qué falta por conectar en la **Fase 3** (necesita saber quién es el usuario autenticado):
+**Siguiente paso: Fase 4, parte 1** (traer el frontend de `backup`). Ver la tabla de abajo.
 
-- `POST /auth/login`, `/auth/registro` y `/auth/refresh` (el servicio `UsuarioService.registrar` ya existe).
-- `POST /boletas` y `GET /boletas/mias`: `BoletaService.crear(usuarioId, datos)` y `listarDe(usuarioId)` ya existen; falta tomar el id del token y crear el DTO de la compra.
-- `PUT` y `DELETE /usuarios/{id}`: `UsuarioService.actualizar` y `eliminar` piden `idSolicitante`.
-- `JwtService` y `JwtAuthFilter` en `shared/security`, y reemplazar el `HttpStatusEntryPoint` de `SecurityConfig` por una respuesta con el formato `ApiError`.
+Lo que el frontend necesita saber de la API (Fase 4):
+
+- `POST /api/v1/auth/login` con `{correo, contrasena}` devuelve `{tokenAcceso, tokenRefresco, tipoToken, expiraEn, usuario: {id, nombre, correo, rol, creadoEn}}`. `/auth/registro` (`{nombre, correo, contrasena}`) responde lo mismo con 201.
+- Cada solicitud protegida lleva `Authorization: Bearer <tokenAcceso>`. Ante un 401, llamar una vez a `POST /api/v1/auth/refresh` con `{tokenRefresco}`, guardar el par nuevo y repetir la solicitud; si el refresco también da 401, cerrar sesión.
+- `POST /api/v1/boletas`: `{items: [{productoId, cantidad}], tipoEntrega: "DESPACHO" | "RETIRO", direccionEnvio, ciudad, cuponCodigo}`. No se envían precios.
+- Todo error trae `{fecha, estado, error, mensaje, ruta, detalles}`; `mensaje` está en español y se puede mostrar tal cual.
 
 ### Qué modelo y esfuerzo usar en cada parte
 
@@ -46,9 +54,13 @@ Qué falta por conectar en la **Fase 3** (necesita saber quién es el usuario au
 | ✅ 5 | Servicios: boleta, descuento de stock, totales, cupones, reglas por rol | **Opus 5.5** | **alto** |
 | ✅ 6 | Controladores, DTOs y anotaciones de Swagger | Sonnet 5.5 | bajo o medio |
 | ✅ 7 | Pruebas: Mockito, MockMvc y Testcontainers | Sonnet 5.5 | medio |
-| **Fase 3** | JWT, BCrypt, filtro, roles y refresco de token | **Opus 5.5** | **alto o muy alto** |
+| ✅ Fase 3 | JWT, BCrypt, filtro, roles y refresco de token | Opus 5.5 | alto |
+| **4.1** | Traer el frontend de `backup` a `eva3_dev` sin perder sus 94 pruebas | Sonnet 5.5 | medio |
+| 4.2 | Cliente HTTP con `Bearer` y refresco automático, `AuthContext`, sesión persistente y cierre de sesión | **Opus 5.5** | **alto** |
+| 4.3 | Rutas protegidas y menús según el rol (administrador, vendedor, cliente) | Sonnet 5.5 | medio |
+| 4.4 | Pasar las páginas de localStorage a la API: catálogo, detalle, registro, checkout y CRUD de administración | Sonnet 5.5 | medio |
 
-Después de esas partes siguen la Fase 4 (integración con el frontend) y las Fases 5 y 6; ver la sección 9.
+Después siguen las Fases 5 (pruebas de frontend) y 6 (documentación); ver la sección 9.
 
 ### Decisiones ya tomadas (no volver a discutirlas)
 
@@ -56,6 +68,8 @@ Después de esas partes siguen la Fase 4 (integración con el frontend) y las Fa
 - MySQL 8.4 en Docker; esquema con **Flyway**; Hibernate solo valida.
 - El checkout **exige sesión iniciada**: `boletas.usuario_id` es obligatorio (no hay compra como invitado).
 - Pruebas de integración con **Testcontainers `mysql:8.4`** (requiere Docker).
+- Compran el **cliente y el administrador** (el administrador tiene acceso total); el vendedor no compra.
+- Token de refresco **JWT sin estado** (no hay tabla de tokens); acceso de 15 minutos y refresco de 7 días.
 - Spring Boot **4.1.3** y Java **21**. (La 4.2.0 salió el 19-nov-2026; se prefirió la 4.1.x por ser una versión `.0` recién publicada.)
 - El frontend mejorado de la rama `backup` **todavía no se trae**; se integra al llegar a la Fase 4.
 
@@ -145,7 +159,7 @@ Para hacer `git push` desde otro equipo hay que autenticarse: con HTTPS, el admi
 ### Variables de entorno y base de datos
 
 ```bash
-cp .env.example .env      # editar las contraseñas; .env está ignorado por Git
+cp .env.example .env      # editar las contraseñas y JWT_SECRET; .env está ignorado por Git
 docker compose up -d
 ```
 
@@ -252,14 +266,14 @@ USUARIO ──▶ BOLETA ──▶ DETALLE_BOLETA ◀── PRODUCTO ◀── C
 
 ## 6. Estado actual frente a la rúbrica
 
-Leyenda: 🔴 no cumple · 🟠 parcial · 🟡 en curso.
+Leyenda: 🔴 no cumple · 🟠 parcial · 🟡 en curso · 🟢 listo en el backend.
 
 | Indicador | Estado | Situación |
 |---|---|---|
-| IE3.1.1 Backend + BD | 🟡 | Compila y la conexión a MySQL está configurada. Esqueleto modular listo. **Faltan** el esquema (Flyway), las entidades y la lógica de negocio: el código plano antiguo se eliminó a propósito para rehacerlo dentro de los módulos. |
-| IE3.2.1 API REST + Swagger | 🟡 | springdoc declarado en el `pom.xml`. **Faltan** los controladores y sus anotaciones. |
+| IE3.1.1 Backend + BD | 🟢 | Monolito modular con MySQL 8.4, Flyway, entidades, servicios con reglas de negocio y pruebas (Mockito, MockMvc y Testcontainers). |
+| IE3.2.1 API REST + Swagger | 🟢 | CRUD bajo `/api/v1`, documentado en Swagger UI (`/swagger-ui.html`) con el botón *Authorize* para el token. |
 | IE3.2.2 Integración | 🔴 | `frontend/src/services/api.js` tiene 3 funciones. Solo `Home` pide productos al backend (con respaldo en localStorage) y `Login` usa la API. Admin, categorías, ofertas, detalle, registro y checkout siguen contra localStorage (`src/data/*.js`). |
-| IE3.3.1 JWT + roles | 🔴 | Sin implementar en la estructura nueva (el código anterior estaba abierto y con contraseñas en texto plano). |
+| IE3.3.1 JWT + roles | 🟢 | Spring Security con JWT (acceso y refresco), BCrypt y `@PreAuthorize` por rol en cada endpoint. |
 | IE3.3.2 Sesión en el frontend | 🟠 | Guarda `tokenJWT` y `usuarioLogueado` en localStorage (persiste al recargar). No envía `Authorization: Bearer`, no valida expiración, no hay logout visible ni contexto de sesión. |
 | IE3.3.3 Restricciones en el frontend | 🔴 | `/admin` no tiene guardia: se entra escribiendo la URL. El Vendedor ve lo mismo que el Administrador. |
 | Presentación | 🟠 | El guion existente es de la EP2. Falta guion EP3. |
@@ -311,7 +325,7 @@ Están completas en **`backend/ARQUITECTURA.md`**. Resumen:
 | 0 | Decisiones; instalar Docker Desktop | ✅ |
 | 1 | Infraestructura: `docker-compose.yml`, `.env.example`, `pom.xml`, `application.yml` | ✅ |
 | 2 | Monolito modular: arquitectura ✅, esqueleto ✅, esquema y semilla ✅, entidades y repositorios ✅, servicios ✅, controladores y Swagger ✅, pruebas ✅ | ✅ Completa (partes 1 a 7) |
-| 3 | Seguridad: JWT, BCrypt, filtro, roles, `@PreAuthorize`, refresco de token | Pendiente |
+| 3 | Seguridad: JWT, BCrypt, filtro, roles, `@PreAuthorize`, refresco de token | ✅ |
 | 4 | Integración con el frontend: cliente HTTP, `AuthContext`, rutas por rol, migrar datos simulados a la API. Traer el trabajo de `backup` | Pendiente |
 | 5 | Calidad: pruebas de backend ✅ (Mockito, MockMvc, Testcontainers) y de frontend (sesión y guardias, pendiente) | En curso |
 | 6 | Documentación: ERS, manual con pantallazos (Anexo 4), documentación de APIs (Anexo 3), documento de integración (Anexo 2), guion EP3, README | Pendiente |
@@ -325,7 +339,7 @@ Están completas en **`backend/ARQUITECTURA.md`**. Resumen:
 | `POST`, `PUT`, `DELETE` de productos y categorías | Administrador |
 | `/usuarios` (CRUD) | Administrador |
 | `GET /boletas`, `/boletas/{id}` | Administrador y Vendedor |
-| `POST /boletas`, `GET /boletas/mias` | Cliente (sesión obligatoria) |
+| `POST /boletas`, `GET /boletas/mias` | Cliente y Administrador (sesión obligatoria) |
 
 ---
 
