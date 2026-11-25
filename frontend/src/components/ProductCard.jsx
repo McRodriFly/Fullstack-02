@@ -1,5 +1,6 @@
 /* Tarjeta de producto. No conoce el carrito: avisa el clic con onAgregar(producto,
-   precioFinal) y el padre decide qué hacer. Se reutiliza en Home, Categorías y Ofertas. */
+   precioFinal) y el padre decide qué hacer. Sin onAgregar no muestra el botón (el
+   vendedor no usa el carrito). Se reutiliza en Home, Categorías y Ofertas. */
 import { Link } from "react-router-dom";
 import { formatearPrecio } from "../utils/formato";
 
@@ -37,12 +38,14 @@ export default function ProductCard({ producto, onAgregar }) {
             <p className="fw-bold text-danger mb-3">{formatearPrecio(producto.precio)}</p>
           )}
 
-          <button
-            className="btn btn-dark w-100 mt-auto rounded-0 fw-bold"
-            onClick={() => onAgregar(producto, precioFinal)}
-          >
-            AÑADIR AL CARRITO
-          </button>
+          {onAgregar && (
+            <button
+              className="btn btn-dark w-100 mt-auto rounded-0 fw-bold"
+              onClick={() => onAgregar(producto, precioFinal)}
+            >
+              AÑADIR AL CARRITO
+            </button>
+          )}
         </div>
       </article>
     </div>

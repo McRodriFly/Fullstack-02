@@ -8,6 +8,8 @@ import EstadoConsulta from "../components/EstadoConsulta";
 import { useConsultaApi } from "../hooks/useConsultaApi";
 import { productosDesdeApi } from "../services/catalogo";
 import { useCarrito } from "../context/CarritoContext";
+import { useAuth } from "../context/AuthContext";
+import { puedeUsarCarrito } from "../utils/roles";
 
 export default function Categorias() {
   const productosApi = useConsultaApi("/productos", productosDesdeApi);
@@ -20,6 +22,7 @@ export default function Categorias() {
     setSearchParams(categoria === "todas" ? {} : { cat: categoria });
   }
   const { agregarAlCarrito } = useCarrito();
+  const { usuario } = useAuth();
 
   function handleAgregar(producto, precioFinal) {
     agregarAlCarrito({ ...producto, precio: precioFinal });
@@ -68,7 +71,7 @@ export default function Categorias() {
             <ProductCard
               key={producto.id}
               producto={producto}
-              onAgregar={handleAgregar}
+              onAgregar={puedeUsarCarrito(usuario) ? handleAgregar : undefined}
             />
           ))}
         </div>

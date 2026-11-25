@@ -5,11 +5,14 @@ import { useConsultaApi } from "../hooks/useConsultaApi";
 import { productoDesdeApi } from "../services/catalogo";
 import EstadoConsulta from "../components/EstadoConsulta";
 import { useCarrito } from "../context/CarritoContext";
+import { useAuth } from "../context/AuthContext";
+import { puedeUsarCarrito } from "../utils/roles";
 
 export default function DetalleProducto() {
   const { id } = useParams();
   const { datos: producto, error, cargando } = useConsultaApi(`/productos/${id}`, productoDesdeApi);
   const { agregarAlCarrito } = useCarrito();
+  const { usuario } = useAuth();
 
   if (cargando) {
     return (
@@ -72,9 +75,11 @@ export default function DetalleProducto() {
             <p className="fs-4 fw-bold text-danger">{formatearPrecio(producto.precio)}</p>
           )}
           <p className="text-secondary">Stock disponible: {producto.stock} unidades.</p>
-          <button className="btn btn-dark btn-lg rounded-0 fw-bold" onClick={handleAgregar}>
-            AÑADIR AL CARRITO
-          </button>
+          {puedeUsarCarrito(usuario) && (
+            <button className="btn btn-dark btn-lg rounded-0 fw-bold" onClick={handleAgregar}>
+              AÑADIR AL CARRITO
+            </button>
+          )}
         </div>
       </div>
     </section>

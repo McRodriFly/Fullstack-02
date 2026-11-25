@@ -4,10 +4,13 @@ import EstadoConsulta from "../components/EstadoConsulta";
 import { useConsultaApi } from "../hooks/useConsultaApi";
 import { productosDesdeApi } from "../services/catalogo";
 import { useCarrito } from "../context/CarritoContext";
+import { useAuth } from "../context/AuthContext";
+import { puedeUsarCarrito } from "../utils/roles";
 
 export default function Ofertas() {
   const { datos: productos, error, cargando } = useConsultaApi("/productos", productosDesdeApi);
   const { agregarAlCarrito } = useCarrito();
+  const { usuario } = useAuth();
 
   function handleAgregar(producto, precioFinal) {
     agregarAlCarrito({ ...producto, precio: precioFinal });
@@ -34,7 +37,7 @@ export default function Ofertas() {
               <ProductCard
                 key={producto.id}
                 producto={producto}
-                onAgregar={handleAgregar}
+                onAgregar={puedeUsarCarrito(usuario) ? handleAgregar : undefined}
               />
             ))
           )}

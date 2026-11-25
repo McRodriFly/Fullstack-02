@@ -5,7 +5,7 @@ import { act, cleanup, fireEvent, render, screen, within } from "@testing-librar
 import { MemoryRouter } from "react-router-dom";
 import App from "../App";
 import { borrarSesion } from "../services/sesion";
-import { PERMISOS, nombreDelRol, tieneRol } from "../utils/roles";
+import { PERMISOS, nombreDelRol, puedeUsarCarrito, tieneRol } from "../utils/roles";
 import {
   USUARIOS, gorra, guardarCarrito, guardarSesionDePrueba, respuestaJson, respuestaSesion, simularBackend,
   simularCatalogo,
@@ -52,6 +52,13 @@ describe("Matriz de permisos (utils/roles.js)", () => {
     Object.values(PERMISOS).forEach((roles) => expect(tieneRol(USUARIOS.admin, roles)).toBe(true));
     const delCliente = Object.keys(PERMISOS).filter((p) => tieneRol(USUARIOS.cliente, PERMISOS[p]));
     expect(delCliente).toEqual(["comprar"]);
+  });
+
+  it("el carrito lo usan los visitantes, el cliente y el administrador, pero no el vendedor", () => {
+    expect(puedeUsarCarrito(null)).toBe(true);
+    expect(puedeUsarCarrito(USUARIOS.cliente)).toBe(true);
+    expect(puedeUsarCarrito(USUARIOS.admin)).toBe(true);
+    expect(puedeUsarCarrito(USUARIOS.vendedor)).toBe(false);
   });
 
   it("nombra cada rol en español", () => {
@@ -197,6 +204,63 @@ describe("Panel según el rol", () => {
 
     expect(await screen.findByText("Nueva categoría")).toBeTruthy();
     expect(await screen.findByText("Accesorios")).toBeTruthy();
+  });
+});
+
+describe("Carrito según el rol", () => {
+  beforeEach(() => {
+    localStorage.clear();
+    simularCatalogo();
+  });
+  afterEach(cleanup);
+
+  it("el vendedor ve el catálogo sin el carrito ni los botones de compra", async () => {
+    guardarSesionDePrueba(USUARIOS.vendedor);
+    renderApp("/");
+
+    expect(await screen.findByText("Chaqueta Oficial F1")).toBeTruthy();
+    expect(screen.queryByTestId("contador-carrito")).toBe(null);
+    expect(screen.queryByText("AÑADIR AL CARRITO")).toBe(null);
+  });
+
+  it("el vendedor tampoco ve el botón de compra en categorías, ofertas ni en la ficha del producto", async () => {
+    guardarSesionDePrueba(USUARIOS.vendedor);
+
+    renderApp("/categorias");
+    expect(await screen.findByText("Chaqueta Oficial F1")).toBeTruthy();
+    expect(screen.queryByText("AÑADIR AL CARRITO")).toBe(null);
+    cleanup();
+
+    renderApp("/ofertas");
+    expect(await screen.findByText("Conjunto Deportivo F1")).toBeTruthy();
+    expect(screen.queryByText("AÑADIR AL CARRITO")).toBe(null);
+    cleanup();
+
+    renderApp("/producto/3");
+    expect(await screen.findByText("Stock disponible: 25 unidades.")).toBeTruthy();
+    expect(screen.queryByText("AÑADIR AL CARRITO")).toBe(null);
+  });
+
+  it("si el vendedor escribe /carrito, vuelve a su inicio del panel", () => {
+    guardarSesionDePrueba(USUARIOS.vendedor);
+    renderApp("/carrito");
+
+    expect(screen.getByText("Inventario")).toBeTruthy();
+    expect(screen.queryByText("MI CARRITO DE COMPRAS")).toBe(null);
+  });
+
+  it("el cliente y el visitante sí ven el carrito y los botones de compra", async () => {
+    guardarSesionDePrueba(USUARIOS.cliente);
+    renderApp("/");
+    expect(await screen.findByText("Chaqueta Oficial F1")).toBeTruthy();
+    expect(screen.getByTestId("contador-carrito")).toBeTruthy();
+    expect(screen.getAllByText("AÑADIR AL CARRITO").length).toBe(12);
+    cleanup();
+
+    localStorage.clear();
+    renderApp("/");
+    expect(await screen.findByText("Chaqueta Oficial F1")).toBeTruthy();
+    expect(screen.getByTestId("contador-carrito")).toBeTruthy();
   });
 });
 

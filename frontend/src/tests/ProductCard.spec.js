@@ -53,4 +53,10 @@ describe("Componente ProductCard", () => {
     expect(spyAgregar).toHaveBeenCalledTimes(1);
     expect(spyAgregar).toHaveBeenCalledWith(productoNormal, 35000);
   });
+
+  it("sin onAgregar no muestra el botón de compra (rol sin carrito)", () => {
+    renderTarjeta({ producto: productoNormal });
+    expect(screen.getByText("Gorra Negra Audi F1")).toBeTruthy();
+    expect(screen.queryByText("AÑADIR AL CARRITO")).toBe(null);
+  });
 });

@@ -2,9 +2,11 @@
    Los ítems y totales vienen de CarritoContext; aquí solo vive el estado del
    formulario del cupón y los mensajes de la vista. */
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, Navigate, useNavigate } from "react-router-dom";
 import { useCarrito } from "../context/CarritoContext";
+import { useAuth } from "../context/AuthContext";
 import { formatearPrecio } from "../utils/formato";
+import { puedeUsarCarrito, rutaInicialPara } from "../utils/roles";
 
 export default function Carrito() {
   const {
@@ -20,6 +22,12 @@ export default function Carrito() {
   const [mensajeCupon, setMensajeCupon] = useState("");
   const [avisoPago, setAvisoPago] = useState("");
   const navigate = useNavigate();
+  const { usuario } = useAuth();
+
+  // El vendedor no compra: si llega escribiendo la URL, vuelve a su inicio.
+  if (!puedeUsarCarrito(usuario)) {
+    return <Navigate to={rutaInicialPara(usuario)} replace />;
+  }
 
   function handleAplicarCupon() {
     if (carrito.length === 0) {

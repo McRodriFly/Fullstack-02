@@ -26,6 +26,13 @@ export const PERMISOS = {
 export function tieneRol(usuario, roles) {
   return usuario !== null && roles.includes(usuario.rol);
 }
+
+/* El carrito se arma sin sesión (se exige iniciarla recién al pagar), así que lo ven
+   los visitantes y los roles que pueden comprar. Para el vendedor no aparece. */
+export function puedeUsarCarrito(usuario) {
+  return usuario === null || tieneRol(usuario, PERMISOS.comprar);
+}
+
 /* Ruta de inicio tras iniciar sesión: el administrador va al resumen del panel,
    el vendedor a los productos (no ve el resumen) y el cliente a la tienda. */
 export function rutaInicialPara(usuario) {

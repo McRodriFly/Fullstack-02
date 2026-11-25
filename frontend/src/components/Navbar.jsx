@@ -1,12 +1,13 @@
 /* Menú principal de la tienda. El colapso en pantallas < lg se maneja con el
    estado menuAbierto (clase "show" de Bootstrap) en vez de data-bs-toggle,
    para que React controle el DOM y el comportamiento sea testeable.
-   Con sesión iniciada muestra el nombre del usuario y el botón para salir. */
+   Con sesión iniciada muestra el nombre del usuario y el botón para salir. El
+   enlace del carrito no se muestra al vendedor. */
 import { useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useCarrito } from "../context/CarritoContext";
 import { useAuth } from "../context/AuthContext";
-import { PERMISOS, rutaInicialPara, tieneRol } from "../utils/roles";
+import { PERMISOS, puedeUsarCarrito, rutaInicialPara, tieneRol } from "../utils/roles";
 
 const ENLACES = [
   { ruta: "/", texto: "Home" },
@@ -89,19 +90,21 @@ export default function Navbar() {
                 </NavLink>
               </li>
             )}
-            <li className="nav-item">
-              <NavLink className="nav-link" to="/carrito" onClick={cerrarMenu}>
-                🛒{" "}
-                {/* key={cantidad} fuerza a remontar el <span> y así reinicia la animación badge-pulso */}
-                <span
-                  key={cantidad}
-                  className="badge bg-danger badge-contador"
-                  data-testid="contador-carrito"
-                >
-                  {cantidad}
-                </span>
-              </NavLink>
-            </li>
+            {puedeUsarCarrito(usuario) && (
+              <li className="nav-item">
+                <NavLink className="nav-link" to="/carrito" onClick={cerrarMenu}>
+                  🛒{" "}
+                  {/* key={cantidad} fuerza a remontar el <span> y así reinicia la animación badge-pulso */}
+                  <span
+                    key={cantidad}
+                    className="badge bg-danger badge-contador"
+                    data-testid="contador-carrito"
+                  >
+                    {cantidad}
+                  </span>
+                </NavLink>
+              </li>
+            )}
           </ul>
         </div>
       </div>
