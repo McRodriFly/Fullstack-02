@@ -33,5 +33,8 @@ app:
     duracion-refresco: 7d
 
 springdoc:
+  # Las respuestas y solicitudes de la API son siempre JSON; así Swagger no las muestra como */*.
+  default-produces-media-type: application/json
+  default-consumes-media-type: application/json
   swagger-ui:
     path: /swagger-ui.html
