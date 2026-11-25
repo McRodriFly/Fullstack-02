@@ -5,6 +5,8 @@ import com.audi.store.catalogo.internal.web.dto.CategoriaRequest;
 import com.audi.store.catalogo.internal.web.dto.CategoriaResponse;
 import com.audi.store.shared.config.OpenApiConfig;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -31,14 +33,17 @@ public class CategoriaController {
     private final CategoriaService categoriaService;
 
     @GetMapping
-    @Operation(summary = "Listar categorías", description = "Ordenadas por nombre. Público.")
+    @Operation(operationId = "listarCategorias", summary = "Listar categorías", description = "Ordenadas por nombre. Público.")
+    @ApiResponse(responseCode = "200", description = "Categorías ordenadas por nombre.")
     public List<CategoriaResponse> listar() {
         return categoriaService.listar().stream().map(CategoriaResponse::desde).toList();
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "Obtener una categoría", description = "Público. 404 si no existe.")
-    public CategoriaResponse obtener(@PathVariable Long id) {
+    @Operation(operationId = "obtenerCategoria", summary = "Obtener una categoría", description = "Público. 404 si no existe.")
+    @ApiResponse(responseCode = "200", description = "La categoría pedida.")
+    @ApiResponse(responseCode = "404", description = "No existe una categoría con ese id.")
+    public CategoriaResponse obtener(@Parameter(description = "Id de la categoría.") @PathVariable Long id) {
         return CategoriaResponse.desde(categoriaService.obtener(id));
     }
 
@@ -46,7 +51,9 @@ public class CategoriaController {
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasRole('ADMIN')")
     @SecurityRequirement(name = OpenApiConfig.ESQUEMA_JWT)
-    @Operation(summary = "Crear una categoría", description = "Solo administrador. 409 si el nombre ya existe.")
+    @Operation(operationId = "crearCategoria", summary = "Crear una categoría", description = "Solo administrador. 409 si el nombre ya existe.")
+    @ApiResponse(responseCode = "201", description = "Categoría creada.")
+    @ApiResponse(responseCode = "409", description = "Ya existe una categoría con ese nombre.")
     public CategoriaResponse crear(@Valid @RequestBody CategoriaRequest datos) {
         return CategoriaResponse.desde(categoriaService.crear(datos.nombre()));
     }
@@ -54,8 +61,11 @@ public class CategoriaController {
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     @SecurityRequirement(name = OpenApiConfig.ESQUEMA_JWT)
-    @Operation(summary = "Renombrar una categoría", description = "Solo administrador. 404 si no existe; 409 si el nombre ya existe.")
-    public CategoriaResponse actualizar(@PathVariable Long id, @Valid @RequestBody CategoriaRequest datos) {
+    @Operation(operationId = "actualizarCategoria", summary = "Renombrar una categoría", description = "Solo administrador. 404 si no existe; 409 si el nombre ya existe.")
+    @ApiResponse(responseCode = "200", description = "Categoría renombrada.")
+    @ApiResponse(responseCode = "404", description = "No existe una categoría con ese id.")
+    @ApiResponse(responseCode = "409", description = "Ya existe otra categoría con ese nombre.")
+    public CategoriaResponse actualizar(@Parameter(description = "Id de la categoría.") @PathVariable Long id, @Valid @RequestBody CategoriaRequest datos) {
         return CategoriaResponse.desde(categoriaService.actualizar(id, datos.nombre()));
     }
 
@@ -63,8 +73,11 @@ public class CategoriaController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("hasRole('ADMIN')")
     @SecurityRequirement(name = OpenApiConfig.ESQUEMA_JWT)
-    @Operation(summary = "Eliminar una categoría", description = "Solo administrador. 404 si no existe; 409 si todavía tiene productos.")
-    public void eliminar(@PathVariable Long id) {
+    @Operation(operationId = "eliminarCategoria", summary = "Eliminar una categoría", description = "Solo administrador. 404 si no existe; 409 si todavía tiene productos.")
+    @ApiResponse(responseCode = "204", description = "Categoría eliminada; sin contenido.")
+    @ApiResponse(responseCode = "404", description = "No existe una categoría con ese id.")
+    @ApiResponse(responseCode = "409", description = "La categoría todavía tiene productos.")
+    public void eliminar(@Parameter(description = "Id de la categoría.") @PathVariable Long id) {
         categoriaService.eliminar(id);
     }
 }

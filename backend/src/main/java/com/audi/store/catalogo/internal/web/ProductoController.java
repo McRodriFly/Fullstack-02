@@ -5,6 +5,7 @@ import com.audi.store.catalogo.internal.web.dto.ProductoRequest;
 import com.audi.store.catalogo.internal.web.dto.ProductoResponse;
 import com.audi.store.shared.config.OpenApiConfig;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -33,15 +34,18 @@ public class ProductoController {
     private final ProductoService productoService;
 
     @GetMapping
-    @Operation(summary = "Listar productos", description = "Todo el catálogo o, con categoriaId, solo esa categoría. Público.")
+    @Operation(operationId = "listarProductos", summary = "Listar productos", description = "Todo el catálogo o, con categoriaId, solo esa categoría. Público.")
+    @ApiResponse(responseCode = "200", description = "Productos del catálogo; lista vacía si no hay ninguno.")
     public List<ProductoResponse> listar(
             @Parameter(description = "Filtra por categoría") @RequestParam(required = false) Long categoriaId) {
         return productoService.listar(categoriaId).stream().map(ProductoResponse::desde).toList();
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "Obtener un producto", description = "Público. 404 si no existe.")
-    public ProductoResponse obtener(@PathVariable Long id) {
+    @Operation(operationId = "obtenerProducto", summary = "Obtener un producto", description = "Público. 404 si no existe.")
+    @ApiResponse(responseCode = "200", description = "El producto pedido.")
+    @ApiResponse(responseCode = "404", description = "No existe un producto con ese id.")
+    public ProductoResponse obtener(@Parameter(description = "Id del producto.") @PathVariable Long id) {
         return ProductoResponse.desde(productoService.obtener(id));
     }
 
@@ -49,7 +53,9 @@ public class ProductoController {
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasRole('ADMIN')")
     @SecurityRequirement(name = OpenApiConfig.ESQUEMA_JWT)
-    @Operation(summary = "Crear un producto", description = "Solo administrador. 400 si los datos son inválidos; 404 si la categoría no existe.")
+    @Operation(operationId = "crearProducto", summary = "Crear un producto", description = "Solo administrador. 400 si los datos son inválidos; 404 si la categoría no existe.")
+    @ApiResponse(responseCode = "201", description = "Producto creado.")
+    @ApiResponse(responseCode = "404", description = "La categoría indicada no existe.")
     public ProductoResponse crear(@Valid @RequestBody ProductoRequest datos) {
         return ProductoResponse.desde(productoService.crear(datos.aDatos()));
     }
@@ -57,8 +63,10 @@ public class ProductoController {
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     @SecurityRequirement(name = OpenApiConfig.ESQUEMA_JWT)
-    @Operation(summary = "Reemplazar un producto", description = "Solo administrador. Reemplaza todos los datos. 404 si el producto o la categoría no existen.")
-    public ProductoResponse actualizar(@PathVariable Long id, @Valid @RequestBody ProductoRequest datos) {
+    @Operation(operationId = "actualizarProducto", summary = "Reemplazar un producto", description = "Solo administrador. Reemplaza todos los datos. 404 si el producto o la categoría no existen.")
+    @ApiResponse(responseCode = "200", description = "Producto reemplazado.")
+    @ApiResponse(responseCode = "404", description = "No existe el producto o la categoría indicada.")
+    public ProductoResponse actualizar(@Parameter(description = "Id del producto.") @PathVariable Long id, @Valid @RequestBody ProductoRequest datos) {
         return ProductoResponse.desde(productoService.actualizar(id, datos.aDatos()));
     }
 
@@ -66,8 +74,11 @@ public class ProductoController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("hasRole('ADMIN')")
     @SecurityRequirement(name = OpenApiConfig.ESQUEMA_JWT)
-    @Operation(summary = "Eliminar un producto", description = "Solo administrador. 404 si no existe; 409 si ya se vendió.")
-    public void eliminar(@PathVariable Long id) {
+    @Operation(operationId = "eliminarProducto", summary = "Eliminar un producto", description = "Solo administrador. 404 si no existe; 409 si ya se vendió.")
+    @ApiResponse(responseCode = "204", description = "Producto eliminado; sin contenido.")
+    @ApiResponse(responseCode = "404", description = "No existe un producto con ese id.")
+    @ApiResponse(responseCode = "409", description = "El producto ya se vendió y no se puede eliminar.")
+    public void eliminar(@Parameter(description = "Id del producto.") @PathVariable Long id) {
         productoService.eliminar(id);
     }
 }

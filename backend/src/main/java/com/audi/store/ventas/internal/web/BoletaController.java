@@ -7,6 +7,8 @@ import com.audi.store.ventas.internal.service.BoletaService;
 import com.audi.store.ventas.internal.web.dto.BoletaResponse;
 import com.audi.store.ventas.internal.web.dto.CompraRequest;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -35,10 +37,14 @@ public class BoletaController {
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasAnyRole('CLIENTE', 'ADMIN')")
     @SecurityRequirement(name = OpenApiConfig.ESQUEMA_JWT)
-    @Operation(summary = "Pagar el carrito",
+    @Operation(operationId = "pagarCarrito", summary = "Pagar el carrito",
             description = "Cliente o administrador con sesión. Cobra el precio vigente del catálogo y descuenta el stock. "
                     + "400 si el carrito, la entrega o el cupón no son válidos; 404 si un producto no existe; "
                     + "409 si no hay stock suficiente.")
+    @ApiResponse(responseCode = "201", description = "Compra registrada: la boleta con su detalle, el total y el stock ya descontado.")
+    @ApiResponse(responseCode = "400", description = "El carrito, la entrega o el cupón no son válidos.")
+    @ApiResponse(responseCode = "404", description = "Un producto del carrito no existe.")
+    @ApiResponse(responseCode = "409", description = "No hay stock suficiente de un producto.")
     public BoletaResponse comprar(
             @Valid @RequestBody CompraRequest compra, @AuthenticationPrincipal UsuarioAutenticado comprador) {
         Boleta boleta = boletaService.crear(comprador.id(), compra.aDatos());
@@ -48,7 +54,8 @@ public class BoletaController {
     @GetMapping("/mias")
     @PreAuthorize("hasAnyRole('CLIENTE', 'ADMIN')")
     @SecurityRequirement(name = OpenApiConfig.ESQUEMA_JWT)
-    @Operation(summary = "Mis compras", description = "Las boletas del usuario de la sesión, de la más reciente a la más antigua.")
+    @Operation(operationId = "misCompras", summary = "Mis compras", description = "Las boletas del usuario de la sesión, de la más reciente a la más antigua.")
+    @ApiResponse(responseCode = "200", description = "Boletas del usuario de la sesión, de la más reciente a la más antigua.")
     public List<BoletaResponse> mias(@AuthenticationPrincipal UsuarioAutenticado comprador) {
         return responder(boletaService.listarDe(comprador.id()));
     }
@@ -56,7 +63,8 @@ public class BoletaController {
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'VENDEDOR')")
     @SecurityRequirement(name = OpenApiConfig.ESQUEMA_JWT)
-    @Operation(summary = "Listar todas las boletas", description = "Administrador y vendedor. De la más reciente a la más antigua.")
+    @Operation(operationId = "listarBoletas", summary = "Listar todas las boletas", description = "Administrador y vendedor. De la más reciente a la más antigua.")
+    @ApiResponse(responseCode = "200", description = "Todas las boletas, de la más reciente a la más antigua.")
     public List<BoletaResponse> listar() {
         return responder(boletaService.listar());
     }
@@ -64,8 +72,10 @@ public class BoletaController {
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'VENDEDOR')")
     @SecurityRequirement(name = OpenApiConfig.ESQUEMA_JWT)
-    @Operation(summary = "Obtener una boleta con su detalle", description = "Administrador y vendedor. 404 si no existe.")
-    public BoletaResponse obtener(@PathVariable Long id) {
+    @Operation(operationId = "obtenerBoleta", summary = "Obtener una boleta con su detalle", description = "Administrador y vendedor. 404 si no existe.")
+    @ApiResponse(responseCode = "200", description = "La boleta con su detalle.")
+    @ApiResponse(responseCode = "404", description = "No existe una boleta con ese id.")
+    public BoletaResponse obtener(@Parameter(description = "Id de la boleta.") @PathVariable Long id) {
         Boleta boleta = boletaService.obtener(id);
         return BoletaResponse.desde(boleta, boletaService.productosDe(List.of(boleta)));
     }

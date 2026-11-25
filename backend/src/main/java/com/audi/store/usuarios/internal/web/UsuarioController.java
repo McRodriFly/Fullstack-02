@@ -7,6 +7,8 @@ import com.audi.store.usuarios.internal.web.dto.UsuarioActualizacionRequest;
 import com.audi.store.usuarios.internal.web.dto.UsuarioRequest;
 import com.audi.store.usuarios.internal.web.dto.UsuarioResponse;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -36,30 +38,38 @@ public class UsuarioController {
     private final UsuarioService usuarioService;
 
     @GetMapping
-    @Operation(summary = "Listar usuarios", description = "Solo administrador. Nunca devuelve contraseñas.")
+    @Operation(operationId = "listarUsuarios", summary = "Listar usuarios", description = "Solo administrador. Nunca devuelve contraseñas.")
+    @ApiResponse(responseCode = "200", description = "Todos los usuarios, sin contraseñas.")
     public List<UsuarioResponse> listar() {
         return usuarioService.listar().stream().map(UsuarioResponse::desde).toList();
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "Obtener un usuario", description = "Solo administrador. 404 si no existe.")
-    public UsuarioResponse obtener(@PathVariable Long id) {
+    @Operation(operationId = "obtenerUsuario", summary = "Obtener un usuario", description = "Solo administrador. 404 si no existe.")
+    @ApiResponse(responseCode = "200", description = "El usuario pedido.")
+    @ApiResponse(responseCode = "404", description = "No existe un usuario con ese id.")
+    public UsuarioResponse obtener(@Parameter(description = "Id del usuario.") @PathVariable Long id) {
         return UsuarioResponse.desde(usuarioService.obtener(id));
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    @Operation(summary = "Crear un usuario con cualquier rol", description = "Solo administrador. 409 si el correo ya está registrado.")
+    @Operation(operationId = "crearUsuario", summary = "Crear un usuario con cualquier rol", description = "Solo administrador. 409 si el correo ya está registrado.")
+    @ApiResponse(responseCode = "201", description = "Usuario creado.")
+    @ApiResponse(responseCode = "409", description = "El correo ya está registrado.")
     public UsuarioResponse crear(@Valid @RequestBody UsuarioRequest datos) {
         return UsuarioResponse.desde(usuarioService.crear(datos.aDatos()));
     }
 
     @PutMapping("/{id}")
-    @Operation(summary = "Actualizar un usuario",
+    @Operation(operationId = "actualizarUsuario", summary = "Actualizar un usuario",
             description = "Solo administrador. Sin contraseña conserva la actual. 409 si el correo ya lo usa otro "
                     + "usuario o si el administrador intenta cambiar su propio rol.")
+    @ApiResponse(responseCode = "200", description = "Usuario actualizado.")
+    @ApiResponse(responseCode = "404", description = "No existe un usuario con ese id.")
+    @ApiResponse(responseCode = "409", description = "El correo ya lo usa otro usuario, o el administrador intentó cambiar su propio rol.")
     public UsuarioResponse actualizar(
-            @PathVariable Long id,
+            @Parameter(description = "Id del usuario.") @PathVariable Long id,
             @Valid @RequestBody UsuarioActualizacionRequest datos,
             @AuthenticationPrincipal UsuarioAutenticado solicitante) {
         return UsuarioResponse.desde(usuarioService.actualizar(id, datos.aDatos(), solicitante.id()));
@@ -67,9 +77,12 @@ public class UsuarioController {
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @Operation(summary = "Eliminar un usuario",
+    @Operation(operationId = "eliminarUsuario", summary = "Eliminar un usuario",
             description = "Solo administrador. 409 si es su propia cuenta o si el usuario tiene compras registradas.")
-    public void eliminar(@PathVariable Long id, @AuthenticationPrincipal UsuarioAutenticado solicitante) {
+    @ApiResponse(responseCode = "204", description = "Usuario eliminado; sin contenido.")
+    @ApiResponse(responseCode = "404", description = "No existe un usuario con ese id.")
+    @ApiResponse(responseCode = "409", description = "Es la cuenta del propio administrador o el usuario tiene compras registradas.")
+    public void eliminar(@Parameter(description = "Id del usuario.") @PathVariable Long id, @AuthenticationPrincipal UsuarioAutenticado solicitante) {
         usuarioService.eliminar(id, solicitante.id());
     }
 }
