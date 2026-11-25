@@ -1,9 +1,11 @@
 /* Menú principal de la tienda. El colapso en pantallas < lg se maneja con el
    estado menuAbierto (clase "show" de Bootstrap) en vez de data-bs-toggle,
-   para que React controle el DOM y el comportamiento sea testeable. */
+   para que React controle el DOM y el comportamiento sea testeable.
+   Con sesión iniciada muestra el nombre del usuario y el botón para salir. */
 import { useState } from "react";
-import { Link, NavLink } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useCarrito } from "../context/CarritoContext";
+import { useAuth } from "../context/AuthContext";
 
 const ENLACES = [
   { ruta: "/", texto: "Home" },
@@ -12,16 +14,23 @@ const ENLACES = [
   { ruta: "/nosotros", texto: "Nosotros" },
   { ruta: "/blog", texto: "Noticias F1" },
   { ruta: "/contacto", texto: "Contacto" },
-  { ruta: "/login", texto: "Iniciar Sesión" },
 ];
 
 export default function Navbar() {
   const { cantidad } = useCarrito();
+  const { usuario, cerrarSesion } = useAuth();
   const [menuAbierto, setMenuAbierto] = useState(false);
+  const navigate = useNavigate();
 
   // Se llama en cada enlace para que el menú móvil se cierre al navegar.
   function cerrarMenu() {
     setMenuAbierto(false);
+  }
+
+  function salir() {
+    cerrarSesion();
+    cerrarMenu();
+    navigate("/");
   }
 
   return (
@@ -51,6 +60,27 @@ export default function Navbar() {
                 </NavLink>
               </li>
             ))}
+            {usuario ? (
+              <>
+                <li className="nav-item">
+                  <span className="nav-link text-light" data-testid="usuario-conectado">
+                    <i className="bi bi-person-circle me-1"></i>
+                    {usuario.nombre}
+                  </span>
+                </li>
+                <li className="nav-item">
+                  <button type="button" className="nav-link btn btn-link" onClick={salir}>
+                    Cerrar Sesión
+                  </button>
+                </li>
+              </>
+            ) : (
+              <li className="nav-item">
+                <NavLink className="nav-link" to="/login" end onClick={cerrarMenu}>
+                  Iniciar Sesión
+                </NavLink>
+              </li>
+            )}
             <li className="nav-item">
               <NavLink className="nav-link" to="/carrito" onClick={cerrarMenu}>
                 🛒{" "}

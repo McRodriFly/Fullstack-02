@@ -2,13 +2,21 @@
    Bajo md el sidebar pasa a barra superior y los enlaces se muestran con el
    botón MENÚ (estado menuAbierto); desde md siempre están visibles. */
 import { useState } from "react";
-import { NavLink, Outlet, Link } from "react-router-dom";
+import { NavLink, Outlet, Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 
 export default function AdminLayout() {
   const [menuAbierto, setMenuAbierto] = useState(false);
+  const { usuario, cerrarSesion } = useAuth();
+  const navigate = useNavigate();
 
   function cerrarMenu() {
     setMenuAbierto(false);
+  }
+
+  function salir() {
+    cerrarSesion();
+    navigate("/login");
   }
 
   return (
@@ -59,11 +67,24 @@ export default function AdminLayout() {
               </ul>
 
               <ul className="nav flex-column mt-auto mb-4">
+                {usuario && (
+                  <li className="nav-item text-secondary small px-3 pb-2" data-testid="usuario-panel">
+                    <i className="bi bi-person-circle me-2"></i>
+                    {usuario.nombre}
+                  </li>
+                )}
                 <li className="nav-item">
                   <Link className="nav-link text-danger fw-bold text-uppercase py-3" to="/">
                     <i className="bi bi-box-arrow-left me-2"></i>Volver a la Tienda
                   </Link>
                 </li>
+                {usuario && (
+                  <li className="nav-item">
+                    <button type="button" className="nav-link btn btn-link text-light text-uppercase py-3" onClick={salir}>
+                      <i className="bi bi-power me-2"></i>Cerrar Sesión
+                    </button>
+                  </li>
+                )}
               </ul>
             </div>
           </div>

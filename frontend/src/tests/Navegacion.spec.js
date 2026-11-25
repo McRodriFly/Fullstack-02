@@ -4,7 +4,7 @@ import { render, screen, fireEvent, cleanup } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import App from "../App";
 import ErrorBoundary from "../components/ErrorBoundary";
-import { guardarCarrito, gorra, conjunto } from "./helpers";
+import { guardarCarrito, gorra, conjunto, guardarSesionDePrueba, USUARIOS, CLAVE_SESION } from "./helpers";
 
 function renderApp(ruta = "/") {
   return render(
@@ -129,6 +129,36 @@ describe("Navegación de la tienda (App)", () => {
     renderApp("/admin");
     expect(screen.queryByTestId("contador-carrito")).toBe(null);
     expect(screen.getByText("PANEL DE CONTROL")).toBeTruthy();
+  });
+
+  it("sin sesión el Navbar ofrece iniciar sesión", () => {
+    renderApp();
+    expect(screen.getByText("Iniciar Sesión")).toBeTruthy();
+    expect(screen.queryByText("Cerrar Sesión")).toBe(null);
+  });
+
+  it("con sesión guardada el Navbar muestra al usuario y permite cerrar sesión", () => {
+    guardarSesionDePrueba(USUARIOS.cliente);
+    renderApp("/ofertas");
+
+    expect(screen.getByTestId("usuario-conectado").textContent).toContain("Cliente");
+    fireEvent.click(screen.getByText("Cerrar Sesión"));
+
+    expect(screen.getByText("Iniciar Sesión")).toBeTruthy();
+    expect(localStorage.getItem(CLAVE_SESION)).toBe(null);
+    // Al salir vuelve al inicio de la tienda.
+    expect(screen.getByText("AUDI F1 TEAM MERCH")).toBeTruthy();
+  });
+
+  it("el panel muestra al usuario y al cerrar sesión lleva al login", () => {
+    guardarSesionDePrueba(USUARIOS.admin);
+    renderApp("/admin");
+
+    expect(screen.getByTestId("usuario-panel").textContent).toContain("Administrador");
+    fireEvent.click(screen.getByText("Cerrar Sesión"));
+
+    expect(screen.getByText("Iniciar Sesión", { selector: "h2" })).toBeTruthy();
+    expect(localStorage.getItem(CLAVE_SESION)).toBe(null);
   });
 
   it("compra exitosa sin datos de pedido no rompe la página", () => {
