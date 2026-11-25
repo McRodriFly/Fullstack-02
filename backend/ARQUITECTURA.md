@@ -89,7 +89,11 @@ React ── POST /api/v1/boletas ──▶ ventas/internal/web/BoletaController
 10. Todas las rutas bajo `/api/v1`, con CRUD completo por recurso.
 11. Códigos HTTP: `201` al crear, `204` al eliminar, `400` datos inválidos, `401` sin sesión, `403` sin permiso, `404` no existe, `409` choca con el estado actual (correo repetido, stock insuficiente, registro en uso).
 12. Validación con `@Valid` en los DTOs. Un único formato de error, producido por `GlobalExceptionHandler`.
-13. Cada endpoint se documenta con `@Tag` y `@Operation` (Swagger UI en `/swagger-ui.html`).
+13. Toda la API se documenta con OpenAPI (Swagger UI en `/swagger-ui.html`, especificación en `/v3/api-docs`):
+    - Controladores: `@Tag` por recurso y, en cada endpoint, `@Operation` (con `operationId` único), `@Parameter` en los parámetros y un `@ApiResponse` por cada código propio (éxito, 404, 409).
+    - DTOs: `@Schema` con descripción y ejemplo en cada campo, incluido `ApiError`.
+    - Lo que se repite en todos los endpoints lo agrega `OpenApiConfig` (un `OpenApiCustomizer`): 400 en los que reciben datos, 401 y 403 en los privados, y que todo error use el esquema `ApiError`.
+    - `OpenApiCoberturaTest` lee `/v3/api-docs` y falla si un endpoint, parámetro o campo queda sin documentar; al agregar uno nuevo hay que documentarlo.
 14. Los DTOs son `record` de Java. El mapeo entidad ↔ DTO se hace con métodos estáticos (`ProductoResponse.desde(producto)`), sin librerías de mapeo.
 
 ### Entidades

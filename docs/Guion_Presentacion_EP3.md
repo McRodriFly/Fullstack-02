@@ -23,7 +23,7 @@ Cuentas (contraseña `1234`): `admin@duoc.cl`, `vendedor@duoc.cl`, `cliente@gmai
 | 7–10 | Carrito con cupón → checkout → compra exitosa | El servidor calcula el total, descuenta el stock y devuelve el N° de pedido. Repetir con más unidades que el stock: 409. Tarjeta `4000000000000002`: rechazo sin tocar el backend. | IE3.2.2 |
 | 10–13 | Administrador: resumen, crear/editar/eliminar un producto, usuarios (correo repetido y cuenta propia) y órdenes con detalle | CRUD completo contra la API. Un producto vendido no se elimina (409). | IE3.2.1, IE3.3.1 |
 | 13–14 | Vendedor: solo productos (lectura) y órdenes; `/admin/usuarios` → Acceso denegado | Matriz de roles. El backend también la exige (`@PreAuthorize`), no solo el frontend. | IE3.3.1, IE3.3.3 |
-| 14–15 | Pruebas y GitHub | 143 pruebas de backend y 192 de frontend en verde, con cobertura del 100 % en sesión, cliente HTTP y guardias. Commits por tema. | IE3.1.2 |
+| 14–15 | Pruebas y GitHub | 148 pruebas de backend y 192 de frontend en verde, con cobertura del 100 % en sesión, cliente HTTP y guardias. Commits por tema. | IE3.1.2 |
 
 Plan B si el backend falla en vivo: la tienda muestra «No se pudo conectar con el servidor» (es un comportamiento esperado). Reiniciar el backend y recargar.
 

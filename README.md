@@ -14,7 +14,7 @@ Fullstack-02/
 
 La arquitectura del backend está descrita en [`backend/ARQUITECTURA.md`](backend/ARQUITECTURA.md). Para continuar el trabajo desde otro equipo, ver [`RETOMAR_EVA3.md`](RETOMAR_EVA3.md).
 
-> **Estado:** el backend está completo (API REST con JWT, roles, Swagger y 143 pruebas) y el frontend funciona contra él: sesión, catálogo, checkout con descuento de stock, órdenes y administración de productos y usuarios. La documentación entregable está en `docs/`.
+> **Estado:** el backend está completo (API REST con JWT, roles, Swagger y 148 pruebas) y el frontend funciona contra él: sesión, catálogo, checkout con descuento de stock, órdenes y administración de productos y usuarios. La documentación entregable está en `docs/`.
 
 ---
 

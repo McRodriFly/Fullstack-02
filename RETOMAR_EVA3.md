@@ -28,6 +28,7 @@ Documento de traspaso: contiene todo lo necesario para continuar el trabajo sin 
   - **Integración con Testcontainers (`mysql:8.4`):** migraciones, restricciones de la base, checkout completo, reversión del stock y dos compras simultáneas. Usan un contenedor propio, independiente del `docker-compose.yml`, y necesitan Docker en ejecución.
 
 - **Seguridad con JWT** (Fase 3): 143 pruebas, todas en verde.
+- **OpenAPI completo** (backend): todos los endpoints con `@Operation`, `operationId`, `@Parameter` y `@ApiResponse`; todos los DTOs y `ApiError` con `@Schema` (descripción y ejemplo); 400/401/403 y el formato de error agregados por `OpenApiConfig`. `OpenApiCoberturaTest` (5 pruebas) exige que `/v3/api-docs` esté completo: 148 pruebas en total.
   - `JwtService` (jjwt 0.13, HMAC-SHA256) emite un token de **acceso de 15 minutos** (id, correo y rol) y uno de **refresco de 7 días** (solo el id). Sin estado: no se guardan en la base; cerrar sesión es borrarlos en el frontend.
   - `JwtAuthFilter` arma la sesión con el rol del token, sin consultar la base. Un token vencido o alterado no bloquea las rutas públicas; en las protegidas responde 401 con el motivo.
   - `POST /auth/login`, `/auth/registro` (crea un cliente y deja la sesión iniciada) y `/auth/refresh` (relee al usuario: el token nuevo trae su rol actual).
@@ -367,7 +368,7 @@ Están completas en **`backend/ARQUITECTURA.md`**. Resumen:
 | 2 | Monolito modular: arquitectura ✅, esqueleto ✅, esquema y semilla ✅, entidades y repositorios ✅, servicios ✅, controladores y Swagger ✅, pruebas ✅ | ✅ Completa (partes 1 a 7) |
 | 3 | Seguridad: JWT, BCrypt, filtro, roles, `@PreAuthorize`, refresco de token | ✅ |
 | 4 | Integración con el frontend: 4.1 traer `backup` ✅; 4.2 cliente HTTP y `AuthContext` ✅; 4.3 rutas por rol ✅; 4.4 datos desde la API ✅ | ✅ Completa (4.3 y 4.4 sin commitear) |
-| 5 | Calidad: pruebas de backend ✅ (143), de frontend ✅ (192, con 100 % en los archivos críticos) y recorrido de punta a punta en Chrome ✅ (22 pasos) | ✅ Completa |
+| 5 | Calidad: pruebas de backend ✅ (148), de frontend ✅ (192, con 100 % en los archivos críticos) y recorrido de punta a punta en Chrome ✅ (22 pasos) | ✅ Completa |
 | 6 | Documentación: Anexos 2, 3 y 4 ✅, guion EP3 ✅, README ✅. Pendiente: actualizar el ERS y revisar los .docx en Word | En curso |
 
 ### Matriz de permisos objetivo (`/api/v1`)
