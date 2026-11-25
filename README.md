@@ -1,77 +1,135 @@
-# 🏎️ Audi F1 Store — Fullstack II (DSY1104)
+# Audi F1 Store
 
-Proyecto semestral para la asignatura **Desarrollo Fullstack II**. Contiene la tienda oficial de merchandising del equipo **Audi Formula 1**, estructurada con frontend en React y backend en Spring Boot (monolito modular).
+Tienda en línea de merchandising del equipo Audi Formula 1. Aplicación web de tres capas: frontend en React, API REST en Spring Boot y base de datos MySQL, con autenticación JWT y control de acceso por rol.
 
----
+Proyecto de la asignatura Desarrollo Fullstack II (DSY1104).
 
-## 📁 Estructura del Repositorio
+## Tabla de contenidos
+
+- [Arquitectura](#arquitectura)
+- [Tecnologías](#tecnologías)
+- [Requisitos](#requisitos)
+- [Puesta en marcha](#puesta-en-marcha)
+- [Roles y credenciales de desarrollo](#roles-y-credenciales-de-desarrollo)
+- [Pruebas](#pruebas)
+- [Documentación](#documentación)
+- [Estructura del repositorio](#estructura-del-repositorio)
+
+## Arquitectura
 
 ```text
-Fullstack-02/
-├── frontend/                 # Frontend en React 19 (Vite, Bootstrap, Testing Jasmine/Karma)
-└── backend/                  # Backend monolítico modular REST (Spring Boot, MySQL, JWT, Swagger)
+React (SPA)  --HTTP/JSON + JWT-->  Spring Boot (API REST /api/v1)  --JDBC-->  MySQL 8.4
 ```
 
-La arquitectura del backend está descrita en [`backend/ARQUITECTURA.md`](backend/ARQUITECTURA.md). Para continuar el trabajo desde otro equipo, ver [`RETOMAR_EVA3.md`](RETOMAR_EVA3.md).
+- **Frontend:** SPA con React que consume la API mediante `fetch`. Guarda la sesión en `localStorage`, renueva el token de acceso de forma automática y restringe las rutas según el rol del usuario.
+- **Backend:** monolito modular con tres módulos (`usuarios`, `catalogo` y `ventas`), cada uno con sus capas de controlador, servicio y repositorio. La verificación de fronteras entre módulos es automática (Spring Modulith). El esquema de base de datos se versiona con Flyway, una carpeta de migraciones por módulo.
+- **Seguridad:** Spring Security con JWT de acceso (15 minutos) y de refresco (7 días), contraseñas con BCrypt y permisos por rol en cada endpoint.
+- **Documentación de la API:** especificación OpenAPI 3.1 generada con springdoc, disponible en Swagger UI.
 
-> **Estado:** el backend está completo (API REST con JWT, roles, Swagger y 148 pruebas) y el frontend funciona contra él: sesión, catálogo, checkout con descuento de stock, órdenes y administración de productos y usuarios. La documentación entregable está en `docs/`.
+El detalle de las decisiones de diseño del backend está en [`backend/ARQUITECTURA.md`](backend/ARQUITECTURA.md).
 
----
+## Tecnologías
 
-## 🚀 Cómo Iniciar el Proyecto
+| Capa | Tecnologías |
+|---|---|
+| Frontend | React 19, Vite, React Router, Bootstrap 5 |
+| Backend | Java 21, Spring Boot 4.1, Spring Security, Spring Data JPA, Spring Modulith, Flyway, springdoc-openapi |
+| Base de datos | MySQL 8.4 (Docker Compose) |
+| Pruebas frontend | Jasmine, Karma, React Testing Library, Istanbul |
+| Pruebas backend | JUnit 5, Mockito, MockMvc, Testcontainers |
 
-### Base de datos, backend y frontend
+## Requisitos
 
-0. **Base de datos (MySQL 8.4 en Docker):** requiere Docker Desktop.
+- Node.js 26 (ver `frontend/.node-version`) y Google Chrome, para las pruebas del frontend.
+- JDK 21. En Windows, `JAVA_HOME` debe apuntar a esa instalación.
+- Docker, para la base de datos y para las pruebas de integración del backend.
+
+## Puesta en marcha
+
+1. **Base de datos**
+
    ```bash
-   cp .env.example .env        # editar las contraseñas y generar JWT_SECRET (ver .env.example)
+   cp .env.example .env     # definir las contraseñas y generar JWT_SECRET (ver comentarios del archivo)
    docker compose up -d
    ```
 
-1. **Backend:**
-   ```bash
-   cd backend && ./mvnw spring-boot:run
-   ```
-   *(Swagger UI: http://localhost:8080/swagger-ui.html)*
+2. **Backend** (http://localhost:8080)
 
-2. **Frontend React:**
    ```bash
-   cd frontend && npm run dev
+   cd backend
+   ./mvnw spring-boot:run
    ```
 
----
+   Al arrancar, Flyway crea el esquema y carga los datos iniciales. Swagger UI queda en http://localhost:8080/swagger-ui.html y la especificación en `/v3/api-docs`.
 
-## 🧪 Pruebas
+3. **Frontend** (http://localhost:5173)
 
-**Frontend** (Jasmine + Karma + Chrome Headless):
+   ```bash
+   cd frontend
+   npm ci
+   npm run dev
+   ```
+
+   La URL de la API es `http://localhost:8080/api/v1`; se cambia con la variable `VITE_API_URL` en un archivo `.env` del frontend.
+
+## Roles y credenciales de desarrollo
+
+| Rol | Acceso |
+|---|---|
+| Administrador | Acceso total: panel de administración con productos, órdenes y usuarios. |
+| Vendedor | Consulta de productos y de órdenes, en modo lectura. |
+| Cliente | Tienda: catálogo, carrito y compra. |
+
+Usuarios cargados por la migración de datos iniciales, para entornos de desarrollo. Se pueden usar en Swagger UI con `POST /api/v1/auth/login`.
+
+| Rol | Correo | Contraseña |
+|---|---|---|
+| Administrador | `admin@duoc.cl` | `1234` |
+| Vendedor | `vendedor@duoc.cl` | `1234` |
+| Cliente | `cliente@gmail.com` | `1234` |
+
+Estas credenciales no deben usarse fuera de un entorno local.
+
+## Pruebas
+
+**Frontend** (Jasmine, Karma y Chrome Headless):
 
 ```bash
-cd frontend && npm ci && npm test
+cd frontend
+npm ci
+npm test
 ```
 
-Resultado esperado: `TOTAL: 192 SUCCESS`. Falla si la cobertura global baja del 90 % o si la de un archivo crítico (sesión, cliente HTTP, contextos, guardia de rutas, validaciones y roles) baja del 100 %. Requiere Node.js 26 y Google Chrome.
+La ejecución espera `TOTAL: 192 SUCCESS` y falla si la cobertura global baja del 90 % o si la de un archivo crítico (sesión, cliente HTTP, contextos, guardia de rutas, validaciones y roles) baja del 100 %.
 
-**Backend** (JUnit, Mockito, MockMvc y Testcontainers; requiere Docker en ejecución). En Windows, `JAVA_HOME` debe apuntar al JDK 21:
+**Backend** (JUnit, Mockito, MockMvc y Testcontainers; requiere Docker en ejecución):
 
 ```bash
-cd backend && ./mvnw -B clean test
+cd backend
+./mvnw -B clean test
 ```
 
-Sin Docker se pueden correr solo las pruebas que no usan base de datos:
-`./mvnw -B clean test -Dtest="*ServiceTest,*ControllerTest,CuponTest,ModularidadTest"`.
+Son 148 pruebas, incluida una que verifica que la especificación OpenAPI documente todos los endpoints. Sin Docker se pueden ejecutar solo las que no usan base de datos:
 
----
+```bash
+./mvnw -B clean test -Dtest="*ServiceTest,*ControllerTest,CuponTest,ModularidadTest"
+```
 
-## 📚 Documentación
+## Documentación
 
-En [`docs/`](docs/): documentación de APIs e integración (Anexo 2), planilla de endpoints (Anexo 3), manual de usuario con capturas (Anexo 4) y guion de la presentación. La arquitectura del backend está en [`backend/ARQUITECTURA.md`](backend/ARQUITECTURA.md).
+En [`docs/`](docs/):
 
----
+- Documentación de APIs e integración (Anexo 2).
+- Planilla de endpoints (Anexo 3).
+- Manual de usuario con capturas de pantalla (Anexo 4).
+- Guion de la presentación.
 
-## 🔑 Credenciales de Prueba
+## Estructura del repositorio
 
-Las crea la migración de datos iniciales al arrancar el backend (usables en Swagger UI con `POST /api/v1/auth/login`):
-
-- **Administrador:** `admin@duoc.cl` / `1234` (acceso al panel `/admin`)
-- **Vendedor:** `vendedor@duoc.cl` / `1234`
-- **Cliente:** `cliente@gmail.com` / `1234`
+```text
+.
+├── backend/     API REST (Spring Boot, MySQL, JWT, OpenAPI)
+├── frontend/    Aplicación web (React, Vite, pruebas Jasmine/Karma)
+├── docs/        Documentación y capturas de pantalla
+└── docker-compose.yml   Base de datos MySQL para desarrollo
+```
