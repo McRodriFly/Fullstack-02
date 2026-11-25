@@ -1,10 +1,9 @@
 package com.audi.store;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
 
-@SpringBootTest
-class AudiF1ApiApplicationTests {
+/** Comprueba que la aplicación arranca: Flyway migra y Hibernate valida el esquema. */
+class AudiF1ApiApplicationTests extends IntegracionBase {
 
 	@Test
 	void contextLoads() {
