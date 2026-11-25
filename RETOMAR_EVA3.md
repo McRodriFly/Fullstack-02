@@ -1,6 +1,6 @@
 # Retomar la Evaluación Parcial 3 (DSY1104) desde otro equipo
 
-Documento de traspaso: contiene todo lo necesario para continuar el trabajo sin depender de la sesión ni del PC donde se inició. Última actualización: 2026-11-25 (Fase 4.2).
+Documento de traspaso: contiene todo lo necesario para continuar el trabajo sin depender de la sesión ni del PC donde se inició. Última actualización: 2026-11-25 (Fase 4.4).
 
 ---
 
@@ -49,7 +49,22 @@ Documento de traspaso: contiene todo lo necesario para continuar el trabajo sin 
   - Cobertura: mínimo global 90 % y **100 % obligatorio** en `src/services/`, `src/context/` y `src/utils/` (lo exige `karma.config.cjs`). Hoy todo está al 100 %.
   - Se quitó el `define` de `IS_REACT_ACT_ENVIRONMENT` en Karma: impedía que Testing Library esperara actualizaciones asíncronas sin advertencias.
 
-**Siguiente paso: Fase 4, parte 3** (rutas protegidas y menús por rol). Basta **Sonnet 5.5 con esfuerzo medio**.
+- **Restricciones de acceso por rol en el frontend** (Fase 4.3): rutas protegidas y menús por rol. **Sin commitear** (junto con la 4.4): se decide la autoría de los commits antes de confirmarlos.
+  - `utils/roles.js`: matriz de permisos (`PERMISOS`) y `tieneRol`. `components/RutaProtegida.jsx` la aplica: sin sesión lleva al login y vuelve a la ruta pedida; con un rol sin permiso muestra "Acceso denegado" (403).
+  - Rutas protegidas: `/checkout` (cliente y administrador) y `/admin` (administrador y vendedor), con un permiso propio para cada sección.
+  - Vendedor: entra a `/admin/productos`, ve solo Productos y Órdenes en el menú, y los productos en modo lectura (con su detalle). El Navbar muestra el enlace **Panel** a administrador y vendedor.
+  - Nuevas `/admin/ordenes` y `/admin/ordenes/:id`, que ya leen `GET /api/v1/boletas` del backend (`hooks/useConsultaApi.js`).
+
+- **Datos del frontend desde la API** (Fase 4.4): 192 pruebas, todas en verde, con 100 % de cobertura (global y en los archivos críticos). **Sin commitear.**
+  - Catálogo (Home, Ofertas, Categorías, detalle), panel (resumen, productos, usuarios) y órdenes leen y escriben en `/api/v1` con `hooks/useConsultaApi.js`, con estados de carga y error (`components/EstadoConsulta.jsx`). `services/catalogo.js` adapta los productos entre el backend y las vistas.
+  - **Checkout:** la pasarela sigue simulada (la tarjeta `4000000000000002` se rechaza sin tocar el backend). Con otra tarjeta válida registra la compra en `POST /boletas` (`services/ventas.js` agrupa los repetidos del carrito y envía el código del cupón); el total y el N° de pedido mostrados son los del servidor. Si falla (sin stock, producto eliminado…) se conserva el carrito y se muestra el motivo.
+  - Administración de usuarios completa: crear, editar (contraseña opcional) y eliminar, con los tres roles y los avisos del backend (correo repetido, cuenta propia, usuario con compras).
+  - Se eliminaron `data/productos.js`, `data/usuarios.js` y sus pruebas; `formatearPrecio` pasó a `utils/formato.js`. Solo el carrito sigue en `localStorage`.
+  - **Verificado contra el backend real** (no solo con el simulado de las pruebas): 23 comprobaciones del contrato (formas de datos, cupón, descuento de stock, 409 sin stock, 403 por rol y reglas de usuarios). Después se devolvió la base a su estado inicial.
+  - Pruebas: en Jasmine, `waitFor(() => expect(...))` no espera (los `expect` no lanzan); usar `esperar(() => condición)` de `tests/helpers.js`. `simularBackend` acumula rutas y admite `:parametros`.
+
+**Siguiente paso:** decidir los commits de la 4.3 y la 4.4 (autoría) y seguir con la Fase 5 (pruebas que falten) y la Fase 6 (documentación).
+- Pendiente: probar el flujo completo en un navegador real contra el backend (login, compra y panel). Lo verificado hasta ahora fue a nivel de API.
 
 Lo que el frontend necesita saber de la API (Fase 4):
 
@@ -71,8 +86,8 @@ Lo que el frontend necesita saber de la API (Fase 4):
 | ✅ Fase 3 | JWT, BCrypt, filtro, roles y refresco de token | Opus 5.5 | alto |
 | ✅ 4.1 | Traer el frontend de `backup` a `eva3_dev` sin perder sus 94 pruebas | Sonnet 5.5 | medio |
 | ✅ 4.2 | Cliente HTTP con `Bearer` y refresco automático, `AuthContext`, sesión persistente y cierre de sesión | **Opus 5.5** | **alto** |
-| **4.3** | Rutas protegidas y menús según el rol (administrador, vendedor, cliente) | Sonnet 5.5 | medio |
-| 4.4 | Pasar las páginas de localStorage a la API: catálogo, detalle, registro, checkout y CRUD de administración | Sonnet 5.5 | medio |
+| ✅ 4.3 | Rutas protegidas y menús según el rol (administrador, vendedor, cliente) | Sonnet 5.5 | medio |
+| ✅ 4.4 | Pasar las páginas de localStorage a la API: catálogo, detalle, registro, checkout y CRUD de administración | Sonnet 5.5 | medio |
 
 Después siguen las Fases 5 (pruebas de frontend) y 6 (documentación); ver la sección 9.
 
@@ -289,10 +304,10 @@ Leyenda: 🔴 no cumple · 🟠 parcial · 🟡 en curso · 🟢 listo en el bac
 |---|---|---|
 | IE3.1.1 Backend + BD | 🟢 | Monolito modular con MySQL 8.4, Flyway, entidades, servicios con reglas de negocio y pruebas (Mockito, MockMvc y Testcontainers). |
 | IE3.2.1 API REST + Swagger | 🟢 | CRUD bajo `/api/v1`, documentado en Swagger UI (`/swagger-ui.html`) con el botón *Authorize* para el token. |
-| IE3.2.2 Integración | 🟠 | Login, registro y sesión ya usan la API. Catálogo, ofertas, detalle, checkout y administración siguen con `localStorage` (`src/data/*.js`); se pasan en 4.4. |
+| IE3.2.2 Integración | 🟢 | Sesión, catálogo, checkout (compra y stock), órdenes y administración de productos y usuarios usan la API REST con JWT. Solo el carrito vive en el navegador. Verificado contra el backend real. |
 | IE3.3.1 JWT + roles | 🟢 | Spring Security con JWT (acceso y refresco), BCrypt y `@PreAuthorize` por rol en cada endpoint. |
 | IE3.3.2 Sesión en el frontend | 🟢 | `AuthContext` con tokens en `localStorage` (persiste al recargar), `Authorization: Bearer`, renovación automática del token, descarte de sesiones vencidas y botón **Cerrar Sesión**. |
-| IE3.3.3 Restricciones en el frontend | 🔴 | `/admin` no tiene guardia: se entra escribiendo la URL. El Vendedor ve lo mismo que el Administrador. |
+| IE3.3.3 Restricciones en el frontend | 🟢 | `RutaProtegida` y la matriz de `utils/roles.js`: sin sesión se va al login; el cliente no entra al panel; el vendedor solo ve productos (en modo lectura) y órdenes; el administrador ve todo. |
 | Presentación | 🟠 | El guion existente es de la EP2. Falta guion EP3. |
 
 Otros hallazgos:
@@ -343,7 +358,7 @@ Están completas en **`backend/ARQUITECTURA.md`**. Resumen:
 | 1 | Infraestructura: `docker-compose.yml`, `.env.example`, `pom.xml`, `application.yml` | ✅ |
 | 2 | Monolito modular: arquitectura ✅, esqueleto ✅, esquema y semilla ✅, entidades y repositorios ✅, servicios ✅, controladores y Swagger ✅, pruebas ✅ | ✅ Completa (partes 1 a 7) |
 | 3 | Seguridad: JWT, BCrypt, filtro, roles, `@PreAuthorize`, refresco de token | ✅ |
-| 4 | Integración con el frontend: 4.1 traer `backup` ✅; 4.2 cliente HTTP y `AuthContext`; 4.3 rutas por rol; 4.4 migrar datos simulados a la API | En curso |
+| 4 | Integración con el frontend: 4.1 traer `backup` ✅; 4.2 cliente HTTP y `AuthContext` ✅; 4.3 rutas por rol ✅; 4.4 datos desde la API ✅ | ✅ Completa (4.3 y 4.4 sin commitear) |
 | 5 | Calidad: pruebas de backend ✅ (Mockito, MockMvc, Testcontainers) y de frontend (sesión y guardias, pendiente) | En curso |
 | 6 | Documentación: ERS, manual con pantallazos (Anexo 4), documentación de APIs (Anexo 3), documento de integración (Anexo 2), guion EP3, README | Pendiente |
 
@@ -412,10 +427,11 @@ cd backend
 
 ### Dónde está cada cosa en el frontend
 
-- `src/data/productos.js`, `src/data/usuarios.js`: "base de datos" simulada en localStorage (a reemplazar por la API).
+- `src/services/catalogo.js` y `ventas.js`: adaptadores de productos y compras; `src/hooks/useConsultaApi.js`: lecturas con carga y error.
 - `src/context/CarritoContext.jsx`: estado global del carrito.
 - `src/pages/Login.jsx` y `Registro.jsx`: usan `POST /auth/login` y `/auth/registro`.
 - `src/pages/admin/*`: panel de administración (sin guardia de acceso).
 - `src/services/api.js` y `src/services/sesion.js`: cliente HTTP con JWT y sesión en `localStorage`.
 - `src/context/AuthContext.jsx`: sesión global (`useAuth`).
-- `src/tests/`: 142 pruebas Jasmine con 100 % de cobertura (`npm test`).
+- `src/utils/roles.js` y `src/components/RutaProtegida.jsx`: permisos por rol y guardia de rutas.
+- `src/tests/`: 192 pruebas Jasmine con 100 % de cobertura (`npm test`), con un backend simulado en memoria.
