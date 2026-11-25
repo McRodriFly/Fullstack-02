@@ -1,11 +1,12 @@
-/* / — portada y catálogo completo. */
-import { useState } from "react";
+/* / — portada y catálogo completo (GET /api/v1/productos). */
 import ProductCard from "../components/ProductCard";
-import { obtenerProductos } from "../data/productos";
+import EstadoConsulta from "../components/EstadoConsulta";
+import { useConsultaApi } from "../hooks/useConsultaApi";
+import { productosDesdeApi } from "../services/catalogo";
 import { useCarrito } from "../context/CarritoContext";
 
 export default function Home() {
-  const [productos] = useState(() => obtenerProductos());
+  const { datos: productos, error, cargando } = useConsultaApi("/productos", productosDesdeApi);
   const { agregarAlCarrito } = useCarrito();
 
   // Se guarda el precio final para que un producto en oferta entre al carrito
@@ -29,15 +30,18 @@ export default function Home() {
         <h2 className="fw-bold text-uppercase text-center mb-5">
           Colección Oficial
         </h2>
-        <div className="row g-4">
-          {productos.map((producto) => (
-            <ProductCard
-              key={producto.id}
-              producto={producto}
-              onAgregar={handleAgregar}
-            />
-          ))}
-        </div>
+        <EstadoConsulta cargando={cargando} error={error} textoCarga="Cargando productos..." />
+        {productos && (
+          <div className="row g-4">
+            {productos.map((producto) => (
+              <ProductCard
+                key={producto.id}
+                producto={producto}
+                onAgregar={handleAgregar}
+              />
+            ))}
+          </div>
+        )}
       </section>
     </>
   );

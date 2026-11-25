@@ -1,10 +1,13 @@
-/* App completa: rutas, Navbar (contador y menú móvil), toast, categorías por
-   URL, página 404 y ErrorBoundary. */
+/* App completa contra un backend simulado: rutas, catálogo desde la API, Navbar
+   (contador y menú móvil), toast, categorías por URL, página 404 y ErrorBoundary. */
 import { render, screen, fireEvent, cleanup } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import App from "../App";
 import ErrorBoundary from "../components/ErrorBoundary";
-import { guardarCarrito, gorra, conjunto, guardarSesionDePrueba, USUARIOS, CLAVE_SESION } from "./helpers";
+import {
+  guardarCarrito, gorra, conjunto, guardarSesionDePrueba, USUARIOS, CLAVE_SESION,
+  errorApi, simularBackend, simularCatalogo,
+} from "./helpers";
 
 function renderApp(ruta = "/") {
   return render(
@@ -15,20 +18,35 @@ function renderApp(ruta = "/") {
 }
 
 describe("Navegación de la tienda (App)", () => {
-  beforeEach(() => localStorage.clear());
+  let catalogo;
+  beforeEach(() => {
+    localStorage.clear();
+    catalogo = simularCatalogo();
+  });
   afterEach(cleanup);
 
-  it("Home muestra el catálogo completo de 12 productos", () => {
+  it("Home pide el catálogo al backend y muestra los 12 productos", async () => {
     renderApp("/");
     expect(screen.getByText("AUDI F1 TEAM MERCH")).toBeTruthy();
-    expect(screen.getAllByText("AÑADIR AL CARRITO").length).toBe(12);
+    expect(screen.getByText("Cargando productos...")).toBeTruthy();
+
+    expect((await screen.findAllByText("AÑADIR AL CARRITO")).length).toBe(12);
+    expect(screen.queryByText("Cargando productos...")).toBe(null);
   });
 
-  it("agregar desde Home actualiza el contador del Navbar y muestra el toast", () => {
+  it("si el backend falla, Home muestra el mensaje y no el catálogo", async () => {
+    simularBackend({ "GET /productos": () => errorApi(500, "Ocurrió un error inesperado") });
+    renderApp("/");
+
+    expect(await screen.findByText("Ocurrió un error inesperado")).toBeTruthy();
+    expect(screen.queryByText("AÑADIR AL CARRITO")).toBe(null);
+  });
+
+  it("agregar desde Home actualiza el contador del Navbar y muestra el toast", async () => {
     renderApp("/");
     expect(screen.getByTestId("contador-carrito").textContent).toBe("0");
 
-    fireEvent.click(screen.getAllByText("AÑADIR AL CARRITO")[0]);
+    fireEvent.click((await screen.findAllByText("AÑADIR AL CARRITO"))[0]);
 
     expect(screen.getByTestId("contador-carrito").textContent).toBe("1");
     expect(screen.getByRole("status").textContent).toContain("añadido al carrito");
@@ -58,47 +76,61 @@ describe("Navegación de la tienda (App)", () => {
     expect(screen.getByText(/precio rebajado/i)).toBeTruthy();
   });
 
-  it("detalle de producto: lee el :id de la URL (useParams)", () => {
+  it("detalle de producto: lee el :id de la URL (useParams) y lo pide al backend", async () => {
     renderApp("/producto/4");
-    expect(screen.getByText("Gorra Edición Especial")).toBeTruthy();
+    expect(screen.getByText("Cargando producto...")).toBeTruthy();
+    expect(await screen.findByText("Gorra Edición Especial")).toBeTruthy();
     expect(screen.getByText(/Stock disponible: 8/)).toBeTruthy();
 
     fireEvent.click(screen.getByText("AÑADIR AL CARRITO"));
     expect(screen.getByTestId("contador-carrito").textContent).toBe("1");
   });
 
-  it("detalle de producto sin oferta muestra solo el precio normal", () => {
+  it("detalle de producto sin oferta muestra solo el precio normal", async () => {
     const { container } = renderApp("/producto/1");
-    expect(screen.getByText("$120.000")).toBeTruthy();
+    expect(await screen.findByText("$120.000")).toBeTruthy();
     expect(container.querySelector(".text-decoration-line-through")).toBe(null);
   });
 
-  it("detalle de producto inexistente muestra 'Producto no encontrado'", () => {
+  it("detalle de producto inexistente (404 del backend) muestra 'Producto no encontrado'", async () => {
     renderApp("/producto/999");
-    expect(screen.getByText("Producto no encontrado")).toBeTruthy();
+    expect(await screen.findByText("Producto no encontrado")).toBeTruthy();
   });
 
-  it("Ofertas muestra solo los 4 productos rebajados y agrega con precio de oferta", () => {
+  it("detalle de producto con otro error del backend muestra su mensaje", async () => {
+    simularBackend({ "GET /productos/:id": () => errorApi(500, "Ocurrió un error inesperado") });
+    renderApp("/producto/4");
+
+    expect(await screen.findByText("Ocurrió un error inesperado")).toBeTruthy();
+    expect(screen.queryByText("Producto no encontrado")).toBe(null);
+  });
+
+  it("Ofertas muestra solo los 4 productos rebajados y agrega con precio de oferta", async () => {
     renderApp("/ofertas");
-    expect(screen.getAllByText("AÑADIR AL CARRITO").length).toBe(4);
+    expect((await screen.findAllByText("AÑADIR AL CARRITO")).length).toBe(4);
 
     fireEvent.click(screen.getAllByText("AÑADIR AL CARRITO")[0]);
     const guardado = JSON.parse(localStorage.getItem("carritoTienda"));
     expect(guardado[0].precio).toBe(69000); // precio rebajado, no el original (85.000)
   });
 
-  it("Ofertas avisa cuando no hay productos rebajados", () => {
-    const sinOfertas = [{ ...gorra, oferta: false }];
-    localStorage.setItem("audi_f1_productos", JSON.stringify(sinOfertas));
+  it("Ofertas avisa cuando no hay productos rebajados", async () => {
+    catalogo.productos = catalogo.productos.map((p) => ({ ...p, oferta: false, precioOferta: null }));
     renderApp("/ofertas");
-    expect(screen.getByText(/no hay ofertas activas/i)).toBeTruthy();
+    expect(await screen.findByText(/no hay ofertas activas/i)).toBeTruthy();
   });
 
-  it("Categorías filtra por botón y respeta el filtro de la URL (?cat=)", () => {
-    renderApp("/categorias");
-    expect(screen.getAllByText("AÑADIR AL CARRITO").length).toBe(12);
+  it("Ofertas muestra el error del backend", async () => {
+    simularBackend({ "GET /productos": () => errorApi(500, "Ocurrió un error inesperado") });
+    renderApp("/ofertas");
+    expect(await screen.findByText("Ocurrió un error inesperado")).toBeTruthy();
+  });
 
-    fireEvent.click(screen.getByText("GORRAS"));
+  it("Categorías filtra por botón y respeta el filtro de la URL (?cat=)", async () => {
+    renderApp("/categorias");
+    expect((await screen.findAllByText("AÑADIR AL CARRITO")).length).toBe(12);
+    // Los botones salen de GET /categorias.
+    fireEvent.click(await screen.findByText("GORRAS"));
     expect(screen.getAllByText("AÑADIR AL CARRITO").length).toBe(3);
 
     fireEvent.click(screen.getByText("TODAS"));
@@ -106,7 +138,7 @@ describe("Navegación de la tienda (App)", () => {
 
     cleanup();
     renderApp("/categorias?cat=Poleras");
-    expect(screen.getAllByText("AÑADIR AL CARRITO").length).toBe(6);
+    expect((await screen.findAllByText("AÑADIR AL CARRITO")).length).toBe(6);
     fireEvent.click(screen.getAllByText("AÑADIR AL CARRITO")[0]);
     expect(screen.getByTestId("contador-carrito").textContent).toBe("1");
   });
@@ -125,7 +157,14 @@ describe("Navegación de la tienda (App)", () => {
     expect(screen.getByText("/no-existe")).toBeTruthy();
   });
 
+  it("Categorías muestra el error si falla la consulta de categorías", async () => {
+    simularBackend({ "GET /categorias": () => errorApi(500, "Ocurrió un error inesperado") });
+    renderApp("/categorias");
+    expect(await screen.findByText("Ocurrió un error inesperado")).toBeTruthy();
+  });
+
   it("en /admin se oculta el Navbar de la tienda", () => {
+    guardarSesionDePrueba(USUARIOS.admin);
     renderApp("/admin");
     expect(screen.queryByTestId("contador-carrito")).toBe(null);
     expect(screen.getByText("PANEL DE CONTROL")).toBeTruthy();

@@ -1,12 +1,32 @@
-/* /producto/:id — ficha de un producto. */
+/* /producto/:id — ficha de un producto (GET /api/v1/productos/{id}). */
 import { useParams, Link } from "react-router-dom";
-import { obtenerProductoPorId, formatearPrecio } from "../data/productos";
+import { formatearPrecio } from "../utils/formato";
+import { useConsultaApi } from "../hooks/useConsultaApi";
+import { productoDesdeApi } from "../services/catalogo";
+import EstadoConsulta from "../components/EstadoConsulta";
 import { useCarrito } from "../context/CarritoContext";
 
 export default function DetalleProducto() {
   const { id } = useParams();
-  const producto = obtenerProductoPorId(id);
+  const { datos: producto, error, cargando } = useConsultaApi(`/productos/${id}`, productoDesdeApi);
   const { agregarAlCarrito } = useCarrito();
+
+  if (cargando) {
+    return (
+      <section className="container py-5">
+        <EstadoConsulta cargando textoCarga="Cargando producto..." />
+      </section>
+    );
+  }
+
+  // El backend responde 404 si el producto no existe; otros errores se muestran tal cual.
+  if (error && error.estado !== 404) {
+    return (
+      <section className="container py-5">
+        <EstadoConsulta error={error} />
+      </section>
+    );
+  }
 
   if (!producto) {
     return (

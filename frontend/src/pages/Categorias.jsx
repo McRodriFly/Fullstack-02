@@ -1,15 +1,17 @@
 /* /categorias — catálogo filtrado por categoría.
+   Las categorías vienen de GET /api/v1/categorias y los productos de GET /productos.
    El filtro vive en la URL (?cat=Gorras) con useSearchParams y no en useState:
    el enlace se puede compartir, sobrevive a un recargo y funciona con "atrás". */
-import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import ProductCard from "../components/ProductCard";
-import { obtenerProductos, obtenerCategorias } from "../data/productos";
+import EstadoConsulta from "../components/EstadoConsulta";
+import { useConsultaApi } from "../hooks/useConsultaApi";
+import { productosDesdeApi } from "../services/catalogo";
 import { useCarrito } from "../context/CarritoContext";
 
 export default function Categorias() {
-  const [productos] = useState(() => obtenerProductos());
-  const [categorias] = useState(() => obtenerCategorias());
+  const productosApi = useConsultaApi("/productos", productosDesdeApi);
+  const categoriasApi = useConsultaApi("/categorias");
   // Sin ?cat se muestran todas.
   const [searchParams, setSearchParams] = useSearchParams();
   const categoriaActiva = searchParams.get("cat") || "todas";
@@ -23,10 +25,12 @@ export default function Categorias() {
     agregarAlCarrito({ ...producto, precio: precioFinal });
   }
 
+  const productos = productosApi.datos;
+  const categorias = categoriasApi.datos;
   const productosFiltrados =
     categoriaActiva === "todas"
       ? productos
-      : productos.filter((p) => p.categoria === categoriaActiva);
+      : productos?.filter((p) => p.categoria === categoriaActiva);
 
   return (
     <section className="container py-5">
@@ -42,26 +46,33 @@ export default function Categorias() {
         >
           TODAS
         </button>
-        {categorias.map((categoria) => (
+        {categorias?.map((categoria) => (
           <button
-            key={categoria}
-            className={`btn rounded-0 fw-bold ${categoriaActiva === categoria ? "btn-danger" : "btn-outline-dark"}`}
-            onClick={() => cambiarCategoria(categoria)}
+            key={categoria.id}
+            className={`btn rounded-0 fw-bold ${categoriaActiva === categoria.nombre ? "btn-danger" : "btn-outline-dark"}`}
+            onClick={() => cambiarCategoria(categoria.nombre)}
           >
-            {categoria.toUpperCase()}
+            {categoria.nombre.toUpperCase()}
           </button>
         ))}
       </div>
 
-      <div className="row g-4">
-        {productosFiltrados.map((producto) => (
-          <ProductCard
-            key={producto.id}
-            producto={producto}
-            onAgregar={handleAgregar}
-          />
-        ))}
-      </div>
+      <EstadoConsulta
+        cargando={productosApi.cargando}
+        error={productosApi.error ?? categoriasApi.error}
+        textoCarga="Cargando productos..."
+      />
+      {productosFiltrados && (
+        <div className="row g-4">
+          {productosFiltrados.map((producto) => (
+            <ProductCard
+              key={producto.id}
+              producto={producto}
+              onAgregar={handleAgregar}
+            />
+          ))}
+        </div>
+      )}
     </section>
   );
 }
