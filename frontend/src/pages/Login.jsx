@@ -1,29 +1,37 @@
-/* /login — autenticación simulada (sin backend ni sesión).
-   Un correo que contenga "admin" redirige a /admin; el resto vuelve a la tienda. */
+/* /login — inicio de sesión contra el backend (POST /api/v1/auth/login).
+   Valida el formulario antes de enviarlo; el backend comprueba la contraseña y
+   devuelve el rol, que decide a dónde se redirige (ver rutaInicialPara). */
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { validarLogin } from "../utils/validadores";
+import { useAuth } from "../context/AuthContext";
+import { rutaInicialPara } from "../utils/roles";
 
 export default function Login() {
   const [datos, setDatos] = useState({ correo: "", password: "" });
   const [error, setError] = useState("");
+  const [enviando, setEnviando] = useState(false);
   const navigate = useNavigate();
+  const { iniciarSesion } = useAuth();
 
   function handleChange(e) {
     setDatos({ ...datos, [e.target.name]: e.target.value });
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
     const mensaje = validarLogin(datos);
     setError(mensaje);
     if (mensaje) return; // hay error: no continuar
 
-    // TODO: reemplazar por el rol que entregue el backend.
-    if (datos.correo.toLowerCase().includes("admin")) {
-      navigate("/admin");
-    } else {
-      navigate("/");
+    setEnviando(true);
+    try {
+      const usuario = await iniciarSesion(datos.correo.trim(), datos.password);
+      navigate(rutaInicialPara(usuario));
+    } catch (err) {
+      // Credenciales incorrectas o servidor caído: el mensaje ya viene listo para mostrarse.
+      setError(err.message);
+      setEnviando(false);
     }
   }
 
@@ -55,8 +63,8 @@ export default function Login() {
 
               {error && <div className="alert alert-danger rounded-0">{error}</div>}
 
-              <button type="submit" className="btn btn-dark w-100 fw-bold py-2 rounded-0">
-                INGRESAR
+              <button type="submit" className="btn btn-dark w-100 fw-bold py-2 rounded-0" disabled={enviando}>
+                {enviando ? "INGRESANDO..." : "INGRESAR"}
               </button>
             </form>
 

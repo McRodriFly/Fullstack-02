@@ -1,9 +1,12 @@
 /* /registro — alta de cliente con validación de RUT y selects región/comuna
-   encadenados. El registro es simulado: si es válido, redirige a /login. */
+   encadenados. Se crea la cuenta en el backend (POST /api/v1/auth/registro), que
+   deja la sesión iniciada como cliente. El backend guarda nombre, correo y
+   contraseña; RUT, región y comuna solo se validan en el formulario. */
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { validarRegistro } from "../utils/validadores";
 import { datosUbicacion } from "../data/ubicacion";
+import { useAuth } from "../context/AuthContext";
 
 const FORM_INICIAL = {
   rut: "",
@@ -19,7 +22,9 @@ const FORM_INICIAL = {
 export default function Registro() {
   const [datos, setDatos] = useState(FORM_INICIAL);
   const [error, setError] = useState("");
+  const [enviando, setEnviando] = useState(false);
   const navigate = useNavigate();
+  const { registrarse } = useAuth();
 
   const comunasDisponibles =
     datosUbicacion.find((d) => d.region === datos.region)?.comunas || [];
@@ -34,13 +39,25 @@ export default function Registro() {
     }
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
     const mensaje = validarRegistro(datos);
     setError(mensaje);
     if (mensaje) return;
 
-    navigate("/login");
+    setEnviando(true);
+    try {
+      await registrarse({
+        nombre: `${datos.nombre.trim()} ${datos.apellidos.trim()}`,
+        correo: datos.correo.trim(),
+        contrasena: datos.password,
+      });
+      navigate("/");
+    } catch (err) {
+      // Por ejemplo, 409 si el correo ya está registrado.
+      setError(err.message);
+      setEnviando(false);
+    }
   }
 
   return (
@@ -129,8 +146,8 @@ export default function Registro() {
 
               {error && <div className="alert alert-danger rounded-0 mt-4">{error}</div>}
 
-              <button type="submit" className="btn btn-dark w-100 fw-bold py-2 rounded-0 mt-4">
-                REGISTRARSE
+              <button type="submit" className="btn btn-dark w-100 fw-bold py-2 rounded-0 mt-4" disabled={enviando}>
+                {enviando ? "CREANDO CUENTA..." : "REGISTRARSE"}
               </button>
             </form>
 

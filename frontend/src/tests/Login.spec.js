@@ -1,7 +1,8 @@
-/* Login: estado controlado del formulario y mensajes de error. */
+/* Login: estado controlado del formulario y validación antes de llamar al backend. */
 import { render, screen, fireEvent, cleanup } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import Login from "../pages/Login";
+import { AuthProvider } from "../context/AuthContext";
 
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -10,12 +11,20 @@ afterEach(cleanup);
 function renderLogin() {
   return render(
     <MemoryRouter>
-      <Login />
+      <AuthProvider>
+        <Login />
+      </AuthProvider>
     </MemoryRouter>
   );
 }
 
 describe("Componente Login", () => {
+  // Solo dentro de este describe: un hook en la raíz del archivo aplicaría a todos los specs.
+  let fetch;
+  beforeEach(() => {
+    fetch = spyOn(window, "fetch");
+  });
+
   it("el estado del formulario cambia cuando el usuario escribe", () => {
     renderLogin();
     const inputCorreo = document.getElementById("correo");
@@ -30,6 +39,7 @@ describe("Componente Login", () => {
     fireEvent.click(screen.getByText("INGRESAR"));
 
     expect(screen.getByText(/correo es obligatorio/i)).toBeTruthy();
+    expect(fetch).not.toHaveBeenCalled();
   });
 
   it("rechaza un correo con dominio no permitido", () => {
@@ -42,5 +52,6 @@ describe("Componente Login", () => {
     });
     fireEvent.click(screen.getByText("INGRESAR"));
     expect(screen.getByText(/@duoc.cl/i)).toBeTruthy();
+    expect(fetch).not.toHaveBeenCalled();
   });
 });

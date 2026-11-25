@@ -1,16 +1,20 @@
-/* Formularios: redirección del login por rol, registro (región/comuna) y contacto. */
+/* Formularios: login y registro contra el backend simulado (redirección por rol y
+   errores), selects región/comuna y contacto. */
 import { screen, fireEvent, cleanup } from "@testing-library/react";
 import { Routes, Route } from "react-router-dom";
 import Login from "../pages/Login";
 import Registro from "../pages/Registro";
 import Contacto from "../pages/Contacto";
-import { renderConTienda } from "./helpers";
+import {
+  CLAVE_SESION, USUARIOS, errorApi, respuestaJson, respuestaSesion, renderConTienda, simularBackend,
+} from "./helpers";
 
 function escribir(id, value) {
   fireEvent.change(document.getElementById(id), { target: { value } });
 }
 
 describe("Login: redirección según rol", () => {
+  beforeEach(() => localStorage.removeItem(CLAVE_SESION));
   afterEach(cleanup);
 
   function renderLogin() {
@@ -24,31 +28,63 @@ describe("Login: redirección según rol", () => {
     );
   }
 
-  it("un correo con 'admin' entra al panel de administración", () => {
+  function ingresarComo(correo, password = "1234") {
     renderLogin();
-    escribir("correo", "admin@duoc.cl");
-    escribir("password", "1234");
+    escribir("correo", correo);
+    escribir("password", password);
     fireEvent.click(screen.getByText("INGRESAR"));
-    expect(screen.getByText("Panel admin")).toBeTruthy();
+  }
+
+  it("el administrador entra al panel con el rol que entrega el backend", async () => {
+    simularBackend({ "POST /auth/login": () => respuestaJson(200, respuestaSesion(USUARIOS.admin)) });
+    ingresarComo("admin@duoc.cl");
+    expect(await screen.findByText("Panel admin")).toBeTruthy();
+    expect(JSON.parse(localStorage.getItem(CLAVE_SESION)).usuario.rol).toBe("ROLE_ADMIN");
   });
 
-  it("un cliente vuelve a la tienda", () => {
-    renderLogin();
-    escribir("correo", "fan@gmail.com");
-    escribir("password", "1234");
-    fireEvent.click(screen.getByText("INGRESAR"));
-    expect(screen.getByText("Tienda")).toBeTruthy();
+  it("el vendedor también entra al panel", async () => {
+    simularBackend({ "POST /auth/login": () => respuestaJson(200, respuestaSesion(USUARIOS.vendedor)) });
+    ingresarComo("vendedor@duoc.cl");
+    expect(await screen.findByText("Panel admin")).toBeTruthy();
+  });
+
+  it("el cliente vuelve a la tienda", async () => {
+    simularBackend({ "POST /auth/login": () => respuestaJson(200, respuestaSesion(USUARIOS.cliente)) });
+    ingresarComo("cliente@gmail.com");
+    expect(await screen.findByText("Tienda")).toBeTruthy();
+  });
+
+  it("mientras espera al backend deshabilita el botón", async () => {
+    let responder;
+    simularBackend({ "POST /auth/login": () => new Promise((r) => { responder = r; }) });
+    ingresarComo("cliente@gmail.com");
+
+    const boton = await screen.findByText("INGRESANDO...");
+    expect(boton.disabled).toBe(true);
+
+    responder(respuestaJson(200, respuestaSesion(USUARIOS.cliente)));
+    expect(await screen.findByText("Tienda")).toBeTruthy();
+  });
+
+  it("con credenciales incorrectas muestra el mensaje del backend y permite reintentar", async () => {
+    simularBackend({ "POST /auth/login": () => errorApi(401, "Correo o contraseña incorrectos") });
+    ingresarComo("admin@duoc.cl", "9999");
+
+    expect(await screen.findByText("Correo o contraseña incorrectos")).toBeTruthy();
+    expect(screen.getByText("INGRESAR").disabled).toBe(false);
+    expect(localStorage.getItem(CLAVE_SESION)).toBe(null);
   });
 });
 
 describe("Registro", () => {
+  beforeEach(() => localStorage.removeItem(CLAVE_SESION));
   afterEach(cleanup);
 
   function renderRegistro() {
     return renderConTienda(
       <Routes>
         <Route path="/registro" element={<Registro />} />
-        <Route path="/login" element={<h1>Pantalla login</h1>} />
+        <Route path="/" element={<h1>Tienda</h1>} />
       </Routes>,
       "/registro"
     );
@@ -84,8 +120,7 @@ describe("Registro", () => {
     expect(screen.getByText(/RUT inválido/)).toBeTruthy();
   });
 
-  it("con datos válidos redirige al login", () => {
-    renderRegistro();
+  function completarRegistro() {
     escribir("rut", "111111111");
     escribir("correo", "nuevo@gmail.com");
     escribir("nombre", "Carlos");
@@ -93,7 +128,39 @@ describe("Registro", () => {
     escribir("password", "1234");
     escribir("passwordConf", "1234");
     fireEvent.click(screen.getByText("REGISTRARSE"));
-    expect(screen.getByText("Pantalla login")).toBeTruthy();
+  }
+
+  it("con datos válidos crea la cuenta, deja la sesión iniciada y vuelve a la tienda", async () => {
+    let enviado;
+    simularBackend({
+      "POST /auth/registro": ({ cuerpo }) => {
+        enviado = cuerpo;
+        return respuestaJson(201, respuestaSesion({ ...USUARIOS.cliente, nombre: "Carlos Sainz" }));
+      },
+    });
+    renderRegistro();
+    completarRegistro();
+
+    expect(await screen.findByText("Tienda")).toBeTruthy();
+    expect(enviado).toEqual({ nombre: "Carlos Sainz", correo: "nuevo@gmail.com", contrasena: "1234" });
+    expect(JSON.parse(localStorage.getItem(CLAVE_SESION)).usuario.nombre).toBe("Carlos Sainz");
+  });
+
+  it("si el correo ya está registrado muestra el mensaje del backend", async () => {
+    simularBackend({ "POST /auth/registro": () => errorApi(409, "El correo nuevo@gmail.com ya está registrado") });
+    renderRegistro();
+    completarRegistro();
+
+    expect(await screen.findByText("El correo nuevo@gmail.com ya está registrado")).toBeTruthy();
+    expect(screen.getByText("REGISTRARSE").disabled).toBe(false);
+  });
+
+  it("mientras se crea la cuenta deshabilita el botón", async () => {
+    simularBackend({ "POST /auth/registro": () => new Promise(() => {}) });
+    renderRegistro();
+    completarRegistro();
+
+    expect((await screen.findByText("CREANDO CUENTA...")).disabled).toBe(true);
   });
 });
 
