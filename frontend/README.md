@@ -20,14 +20,16 @@ En esta **Evaluación Parcial 2** se migró la tienda de HTML/CSS/JS vanilla (EP
 | **karma-coverage + Istanbul** | Medición de cobertura de código |
 | **localStorage** | Persistencia simulada (productos, usuarios, carrito) |
 
+> **Estado:** hoy la tienda funciona sola, con datos simulados en `localStorage`. La conexión con el backend (`../backend`, API REST con JWT) se hace en la Fase 4; el plan está en [`../RETOMAR_EVA3.md`](../RETOMAR_EVA3.md).
+
 ## 🛠️ Instalación y ejecución
 
-Requisitos: **Node.js 24** (ver `.node-version`) y npm. Se necesita Google Chrome instalado para las pruebas.
+Requisitos: **Node.js 26** (ver `.node-version`) y npm. Se necesita Google Chrome instalado para las pruebas.
 
 ```bash
 # 1. Clonar el repositorio
 git clone https://github.com/McRodriFly/Fullstack-02.git
-cd Fullstack-02
+cd Fullstack-02/frontend
 
 # 2. Instalar dependencias
 npm install
@@ -108,7 +110,7 @@ npm run lint    # revisión estática del código (oxlint)
 ## 📁 Estructura del proyecto
 
 ```
-src/
+frontend/src/
 ├── components/     # Navbar, Footer, ProductCard, ToastCarrito, ErrorBoundary
 ├── context/        # CarritoContext (estado global del carrito)
 ├── data/           # productos.js (CRUD), ubicacion.js, usuarios.js
@@ -126,4 +128,4 @@ src/
 
 ---
 
-_DSY1104 — Desarrollo Fullstack II · Evaluación Parcial 2 · 2026_
+_DSY1104 — Desarrollo Fullstack II · 2026_
