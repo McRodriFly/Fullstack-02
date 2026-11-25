@@ -19,9 +19,9 @@ En esta **Evaluación Parcial 2** se migró la tienda de HTML/CSS/JS vanilla (EP
 | **React Testing Library** | Renderizado, `renderHook` y simulación de eventos en pruebas |
 | **karma-coverage + Istanbul** | Medición de cobertura de código |
 | **fetch + JWT** | Cliente HTTP del backend con renovación automática del token |
-| **localStorage** | Sesión (tokens y usuario) y, por ahora, datos simulados de productos, usuarios y carrito |
+| **localStorage** | Sesión (tokens y usuario) y carrito de compras |
 
-> **Estado:** el inicio de sesión, el registro y la sesión ya usan el backend (`../backend`, API REST con JWT). El catálogo, el carrito, el checkout y el panel siguen con datos simulados en `localStorage` hasta la Fase 4.4; el plan está en [`../RETOMAR_EVA3.md`](../RETOMAR_EVA3.md).
+> **Estado:** el frontend ya funciona contra el backend (`../backend`, API REST con JWT): sesión, catálogo, checkout, órdenes y administración de productos y usuarios. Solo el carrito vive en el navegador (`localStorage`) hasta que se paga. El plan está en [`../RETOMAR_EVA3.md`](../RETOMAR_EVA3.md).
 
 ## 🔐 Sesión con el backend
 
@@ -29,7 +29,22 @@ En esta **Evaluación Parcial 2** se migró la tienda de HTML/CSS/JS vanilla (EP
 - El token de acceso dura 15 minutos. Si venció, o el backend responde 401, el cliente lo renueva una sola vez con el token de refresco (7 días) y repite la solicitud; si varias solicitudes lo necesitan a la vez, comparten el mismo refresco. Si el refresco falla, la sesión se cierra.
 - `src/services/sesion.js` guarda los tokens y el usuario en `localStorage`, así la sesión sobrevive a una recarga. Al abrir la app, una sesión con el token de refresco vencido se descarta.
 - `src/context/AuthContext.jsx` expone `useAuth()`: `usuario`, `estaAutenticado`, `iniciarSesion`, `registrarse` y `cerrarSesion`. Cerrar sesión descarta los tokens (el backend no los guarda).
-- Tras iniciar sesión, administrador y vendedor van a `/admin`; el cliente, a la tienda.
+- Los datos se consultan con `hooks/useConsultaApi.js` (carga, error y recarga). `services/catalogo.js` adapta los productos entre la forma del backend (`categoriaId`, `imagen`, `precioOferta: null`) y la que usan las vistas.
+- **Checkout:** la pasarela de pago es simulada (la tarjeta `4000000000000002` se rechaza sin tocar el backend). Con cualquier otra tarjeta válida se registra la compra en `POST /api/v1/boletas`: el servidor descuenta el stock, cobra los precios vigentes del catálogo y calcula el total (con el cupón). Si no hay stock, el carrito se conserva y se muestra el motivo.
+- Tras iniciar sesión, el administrador va a `/admin`, el vendedor a `/admin/productos` y el cliente a la tienda. Si el login se pidió desde una ruta protegida (por ejemplo, el checkout), vuelve a ella.
+
+## 🛡️ Acceso según el rol
+
+La matriz está en `src/utils/roles.js` y `src/components/RutaProtegida.jsx` la aplica a las rutas. El backend vuelve a comprobar cada permiso.
+
+| Rol | Qué ve |
+|---|---|
+| Sin sesión | La tienda. `/checkout` y `/admin` llevan al login. |
+| Cliente | La tienda y el checkout. `/admin` muestra "Acceso denegado" (403). |
+| Vendedor | Solo la lista y el detalle de productos (en modo lectura) y de órdenes. No ve el resumen ni usuarios, y no puede pagar. |
+| Administrador | Todo: resumen, CRUD de productos y usuarios, órdenes y compras. |
+
+Si la sesión vence mientras se navega por una ruta protegida, se vuelve al login.
 
 ## 🛠️ Instalación y ejecución
 
@@ -54,7 +69,7 @@ npm run dev
 npm test
 ```
 
-Ejecuta las **142 pruebas** con **Karma + Jasmine** en Chrome Headless y mide la cobertura. Resultado esperado: `TOTAL: 142 SUCCESS`.
+Ejecuta las **192 pruebas** con **Karma + Jasmine** en Chrome Headless y mide la cobertura. Resultado esperado: `TOTAL: 192 SUCCESS`. Las pruebas usan un backend simulado en memoria (`tests/helpers.js`).
 
 | Métrica de cobertura | Resultado | Mínimo exigido |
 |---|---|---|
@@ -63,17 +78,20 @@ Ejecuta las **142 pruebas** con **Karma + Jasmine** en Chrome Headless y mide la
 | Funciones | 100 % | 90 % |
 | Líneas | 100 % | 90 % |
 
-El reporte navegable queda en `coverage/index.html`. `npm test` falla si la cobertura global baja del 90 % o si un archivo crítico (`src/services/`, `src/context/` y `src/utils/`) baja del 100 %.
+El reporte navegable queda en `coverage/index.html`. `npm test` falla si la cobertura global baja del 90 % o si un archivo crítico (`src/services/`, `src/context/`, `src/hooks/`, `src/utils/` y `RutaProtegida.jsx`) baja del 100 %.
 
 | Archivo de pruebas | Qué prueba |
 |---|---|
 | `validadores.spec.js` | Funciones puras: correo, RUT, contraseña, login, registro, contacto y checkout |
-| `productos.spec.js` | CRUD de la fuente de datos simulada |
+| `catalogo.spec.js` | Adaptadores del catálogo y de las ventas (agrupación del carrito), `formatearPrecio` y `describirError` |
+| `useConsultaApi.spec.js` | Hook de consultas: carga, error, cambio de ruta, transformación y recarga |
 | `CarritoContext.spec.js` | Hook `useCarrito` con `renderHook`, cupones, totales, mocks de `localStorage` y `jasmine.clock()` |
 | `ProductCard.spec.js` | Props, renderizado condicional y spy del evento clic |
 | `sesion.spec.js` | Vencimiento de tokens, lectura robusta de la sesión guardada y avisos de cambio |
 | `api.spec.js` | Cliente HTTP: Bearer, errores del backend, sin conexión y renovación del token (incluidas solicitudes simultáneas) |
 | `AuthContext.spec.js` | Sesión persistente ante recargas, login, registro y cierre de sesión |
+| `Permisos.spec.js` | Matriz de roles, guardias de rutas (login, 403, sesión vencida), menú del panel y modo lectura del vendedor |
+| `Ordenes.spec.js` | Lista y detalle de órdenes contra el backend simulado, estados de carga y error |
 | `Login.spec.js` / `Formularios.spec.js` | Login y registro contra un backend simulado (redirección por rol y errores), selects encadenados |
 | `Carrito.spec.js` / `Checkout.spec.js` | Flujo de compra completo: cupones, pago aprobado y rechazado |
 | `Navegacion.spec.js` | Rutas, Navbar responsivo, toast, página 404 y ErrorBoundary |
@@ -109,8 +127,10 @@ npm run lint    # revisión estática del código (oxlint)
 | Ruta | Descripción |
 |---|---|
 | `/admin` | Dashboard con KPIs calculados en vivo |
-| `/admin/productos` | CRUD completo de productos |
-| `/admin/usuarios` | Mantenedor de usuarios |
+| `/admin/productos` | CRUD completo de productos contra la API (el vendedor solo lo ve) |
+| `/admin/ordenes` | Órdenes de compra (desde el backend) |
+| `/admin/ordenes/:id` | Detalle de una orden con el precio cobrado por producto |
+| `/admin/usuarios` | Mantenedor de usuarios contra la API: crear, editar (contraseña opcional) y eliminar, con los tres roles |
 
 ## 🔑 Credenciales de prueba
 
@@ -126,10 +146,11 @@ Cuentas iniciales del backend (contraseña `1234`; requieren el backend en ejecu
 
 ```
 frontend/src/
-├── components/     # Navbar, Footer, ProductCard, ToastCarrito, ErrorBoundary
+├── components/     # Navbar, Footer, ProductCard, ToastCarrito, ErrorBoundary, RutaProtegida
+├── hooks/          # useConsultaApi (GET a la API con estado de carga y error)
 ├── context/        # AuthContext (sesión) y CarritoContext (carrito)
-├── data/           # productos.js (CRUD), ubicacion.js, usuarios.js
-├── services/       # api.js (cliente HTTP con JWT) y sesion.js (sesión en localStorage)
+├── data/           # ubicacion.js (regiones y comunas)
+├── services/       # api.js (cliente HTTP con JWT), sesion.js, catalogo.js y ventas.js
 ├── pages/          # Vistas de la tienda
 │   └── admin/      # Panel de administración
 ├── styles/         # CSS migrado de la EP1 + toast
