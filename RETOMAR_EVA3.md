@@ -22,7 +22,12 @@ Documento de traspaso: contiene todo lo necesario para continuar el trabajo sin 
 
 - **Controladores, DTOs, errores y Swagger** (parte 6): `CategoriaController`, `ProductoController`, `UsuarioController` (listar, obtener y crear) y `BoletaController` (listar y obtener), todos bajo `/api/v1` y con `@PreAuthorize`. `GlobalExceptionHandler` entrega siempre un `ApiError` (400, 401, 403, 404, 409, 500). `SecurityConfig` es un esqueleto cerrado por defecto: solo son públicos Swagger, `/api/v1/auth/**` y los GET de productos y categorías; lo demás responde 401 hasta que exista el JWT. CORS permite `http://localhost:5173` (se cambia con `app.cors.allowed-origins`). Swagger UI: `/swagger-ui.html`.
 
-**Siguiente paso: parte 7 de la Fase 2** (pruebas: Mockito, MockMvc y Testcontainers). Basta Sonnet 5.5 con esfuerzo medio.
+- **Pruebas** (parte 7): 103 pruebas, todas en verde.
+  - **Unitarias con Mockito:** los servicios de usuarios, catálogo y boletas, y los cupones.
+  - **Controladores con MockMvc:** la matriz de roles (200, 401 y 403), el formato de error y que ninguna respuesta exponga contraseñas.
+  - **Integración con Testcontainers (`mysql:8.4`):** migraciones, restricciones de la base, checkout completo, reversión del stock y dos compras simultáneas. Usan un contenedor propio, independiente del `docker-compose.yml`, y necesitan Docker en ejecución.
+
+**Siguiente paso: Fase 3** (seguridad: JWT, BCrypt, filtro, roles y refresco de token). Requiere cambiar a **Opus 5.5 con esfuerzo alto o muy alto** (`/model` y `/effort`).
 
 Qué falta por conectar en la **Fase 3** (necesita saber quién es el usuario autenticado):
 
@@ -40,7 +45,7 @@ Qué falta por conectar en la **Fase 3** (necesita saber quién es el usuario au
 | ✅ 4 | Datos semilla con hashes BCrypt, entidades JPA y repositorios | Sonnet 5.5 | medio |
 | ✅ 5 | Servicios: boleta, descuento de stock, totales, cupones, reglas por rol | **Opus 5.5** | **alto** |
 | ✅ 6 | Controladores, DTOs y anotaciones de Swagger | Sonnet 5.5 | bajo o medio |
-| **7** | Pruebas: Mockito, MockMvc y Testcontainers | Sonnet 5.5 | medio |
+| ✅ 7 | Pruebas: Mockito, MockMvc y Testcontainers | Sonnet 5.5 | medio |
 | **Fase 3** | JWT, BCrypt, filtro, roles y refresco de token | **Opus 5.5** | **alto o muy alto** |
 
 Después de esas partes siguen la Fase 4 (integración con el frontend) y las Fases 5 y 6; ver la sección 9.
@@ -263,7 +268,7 @@ Otros hallazgos:
 
 - **El frontend de `eva3_dev` no tiene el trabajo de la EP2.** Viene de `dev` (basado en el commit `d73b6d7`): sin ErrorBoundary, 404 ni las 94 pruebas, y con comentarios antiguos como "Migrado de…". Está resuelto en `backup`.
 - **Documentos EP3 del repo** (`frontend/docs/Informe_Avance_EP3.pdf`, `Manual_de_Usuario_Audi_F1_EP3.pdf`, `Guion_Presentacion_Audi_F1.pdf`): los tres dan error de lectura (PDF dañado) y describen microservicios y H2. Se regeneran en la Fase 6.
-- **Pruebas del backend:** `AudiF1ApiApplicationTests` (`contextLoads`) necesita MySQL corriendo; el único test que pasa hoy sin base de datos es `ModularidadTest`.
+- **Pruebas del backend:** `.mvnw.cmd -B clean test` necesita Docker en ejecución (Testcontainers levanta su propio MySQL; no usa el de `docker-compose.yml`). Sin Docker solo se pueden correr las pruebas sin base de datos: `-Dtest="*ServiceTest,*ControllerTest,CuponTest,ModularidadTest"`.
 - `docs/coverage.rar` (informe del colega) está en `frontend/docs/`.
 
 ---
@@ -305,10 +310,10 @@ Están completas en **`backend/ARQUITECTURA.md`**. Resumen:
 |---|---|---|
 | 0 | Decisiones; instalar Docker Desktop | ✅ |
 | 1 | Infraestructura: `docker-compose.yml`, `.env.example`, `pom.xml`, `application.yml` | ✅ |
-| 2 | Monolito modular: arquitectura ✅, esqueleto ✅, esquema y semilla ✅, entidades y repositorios ✅, servicios ✅, controladores y Swagger ✅, **pruebas ⏳** | En curso (partes 1 a 6 hechas) |
+| 2 | Monolito modular: arquitectura ✅, esqueleto ✅, esquema y semilla ✅, entidades y repositorios ✅, servicios ✅, controladores y Swagger ✅, pruebas ✅ | ✅ Completa (partes 1 a 7) |
 | 3 | Seguridad: JWT, BCrypt, filtro, roles, `@PreAuthorize`, refresco de token | Pendiente |
 | 4 | Integración con el frontend: cliente HTTP, `AuthContext`, rutas por rol, migrar datos simulados a la API. Traer el trabajo de `backup` | Pendiente |
-| 5 | Calidad: pruebas de backend (Mockito, MockMvc, Testcontainers) y de frontend (sesión y guardias) | Pendiente |
+| 5 | Calidad: pruebas de backend ✅ (Mockito, MockMvc, Testcontainers) y de frontend (sesión y guardias, pendiente) | En curso |
 | 6 | Documentación: ERS, manual con pantallazos (Anexo 4), documentación de APIs (Anexo 3), documento de integración (Anexo 2), guion EP3, README | Pendiente |
 
 ### Matriz de permisos objetivo (`/api/v1`)

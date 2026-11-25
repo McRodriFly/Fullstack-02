@@ -130,9 +130,9 @@ El Vendedor solo consulta productos y órdenes. El Cliente solo usa la tienda.
 
 ## 7. Pruebas
 
-- **Servicios:** Mockito, sin base de datos.
-- **Controladores:** MockMvc, incluyendo el acceso por rol (200, 401 y 403).
-- **Integración:** Testcontainers con `mysql:8.4` (requiere Docker en ejecución).
+- **Servicios:** Mockito, sin base de datos (`*ServiceTest`).
+- **Controladores:** MockMvc con `@WebMvcTest`, incluyendo el acceso por rol (200, 401 y 403) y el formato de error (`*ControllerTest`).
+- **Integración:** `@SpringBootTest` contra un MySQL 8.4 real con Testcontainers (requiere Docker en ejecución). Las clases extienden `IntegracionBase`, que levanta un solo contenedor para toda la ejecución; como se comparte, cada prueba debe dejar los datos como los encontró.
 - **Arquitectura:** `ModularidadTest` ejecuta `ApplicationModules.verify()`. Si se rompe una regla de módulos, el test falla.
 
 ## 8. Comentarios y Javadoc
