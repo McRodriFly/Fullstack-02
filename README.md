@@ -14,7 +14,7 @@ Fullstack-02/
 
 La arquitectura del backend está descrita en [`backend/ARQUITECTURA.md`](backend/ARQUITECTURA.md). Para continuar el trabajo desde otro equipo, ver [`RETOMAR_EVA3.md`](RETOMAR_EVA3.md).
 
-> **Estado:** el backend está completo (API REST con JWT, roles, Swagger y 143 pruebas). El frontend trae el catálogo y la tienda de la EP2 con datos simulados en `localStorage`; su conexión con el backend es la Fase 4 y aún no está hecha.
+> **Estado:** el backend está completo (API REST con JWT, roles, Swagger y 143 pruebas). En el frontend, el inicio de sesión, el registro y la sesión (JWT con renovación automática) ya usan el backend; el catálogo, el checkout y el panel siguen con datos simulados en `localStorage` hasta la Fase 4.4.
 
 ---
 
@@ -49,7 +49,7 @@ La arquitectura del backend está descrita en [`backend/ARQUITECTURA.md`](backen
 cd frontend && npm ci && npm test
 ```
 
-Resultado esperado: `TOTAL: 94 SUCCESS`, con 100 % de cobertura. Requiere Node.js 26 y Google Chrome.
+Resultado esperado: `TOTAL: 142 SUCCESS`. Falla si la cobertura global baja del 90 % o si la de un archivo crítico (sesión, cliente HTTP, contextos y validaciones) baja del 100 %. Requiere Node.js 26 y Google Chrome.
 
 **Backend** (JUnit, Mockito, MockMvc y Testcontainers; requiere Docker en ejecución). En Windows, `JAVA_HOME` debe apuntar al JDK 21:
 

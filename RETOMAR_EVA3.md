@@ -1,6 +1,6 @@
 # Retomar la Evaluación Parcial 3 (DSY1104) desde otro equipo
 
-Documento de traspaso: contiene todo lo necesario para continuar el trabajo sin depender de la sesión ni del PC donde se inició. Última actualización: 2026-11-25 (Fase 4.1).
+Documento de traspaso: contiene todo lo necesario para continuar el trabajo sin depender de la sesión ni del PC donde se inició. Última actualización: 2026-11-25 (Fase 4.2).
 
 ---
 
@@ -41,7 +41,15 @@ Documento de traspaso: contiene todo lo necesario para continuar el trabajo sin 
   - `frontend/.node-version` pasó a 26 y el README del frontend se ajustó a la nueva estructura.
   - **Hoy el frontend no usa el backend**: tienda, carrito, login y administración funcionan con `localStorage`. Conectarlos es la Fase 4.2 a 4.4.
 
-**Siguiente paso: Fase 4, parte 2** (cliente HTTP, `AuthContext` y sesión persistente). Requiere cambiar a **Opus 5.5 con esfuerzo alto** (`/model` y `/effort`).
+- **Sesión del frontend con el backend** (Fase 4.2): 142 pruebas, todas en verde.
+  - `services/api.js`: cliente HTTP con `Authorization: Bearer`. Renueva el token de acceso una sola vez (compartido entre solicitudes simultáneas) si venció o si el backend responde 401, y repite la solicitud; si el refresco falla, cierra la sesión. Los errores llegan como `ErrorApi` con el mensaje del backend.
+  - `services/sesion.js`: tokens y usuario en `localStorage` (sobreviven a recargas); descarta la sesión si el token de refresco venció o el valor está dañado.
+  - `context/AuthContext.jsx` (`useAuth`): usuario, login, registro y cierre de sesión. Se entera también de los cambios hechos por el cliente HTTP.
+  - `Login` y `Registro` usan el backend; el registro deja la sesión iniciada. El Navbar y el panel muestran al usuario y el botón **Cerrar Sesión**. Administrador y vendedor entran a `/admin`; el cliente, a la tienda.
+  - Cobertura: mínimo global 90 % y **100 % obligatorio** en `src/services/`, `src/context/` y `src/utils/` (lo exige `karma.config.cjs`). Hoy todo está al 100 %.
+  - Se quitó el `define` de `IS_REACT_ACT_ENVIRONMENT` en Karma: impedía que Testing Library esperara actualizaciones asíncronas sin advertencias.
+
+**Siguiente paso: Fase 4, parte 3** (rutas protegidas y menús por rol). Basta **Sonnet 5.5 con esfuerzo medio**.
 
 Lo que el frontend necesita saber de la API (Fase 4):
 
@@ -62,8 +70,8 @@ Lo que el frontend necesita saber de la API (Fase 4):
 | ✅ 7 | Pruebas: Mockito, MockMvc y Testcontainers | Sonnet 5.5 | medio |
 | ✅ Fase 3 | JWT, BCrypt, filtro, roles y refresco de token | Opus 5.5 | alto |
 | ✅ 4.1 | Traer el frontend de `backup` a `eva3_dev` sin perder sus 94 pruebas | Sonnet 5.5 | medio |
-| **4.2** | Cliente HTTP con `Bearer` y refresco automático, `AuthContext`, sesión persistente y cierre de sesión | **Opus 5.5** | **alto** |
-| 4.3 | Rutas protegidas y menús según el rol (administrador, vendedor, cliente) | Sonnet 5.5 | medio |
+| ✅ 4.2 | Cliente HTTP con `Bearer` y refresco automático, `AuthContext`, sesión persistente y cierre de sesión | **Opus 5.5** | **alto** |
+| **4.3** | Rutas protegidas y menús según el rol (administrador, vendedor, cliente) | Sonnet 5.5 | medio |
 | 4.4 | Pasar las páginas de localStorage a la API: catálogo, detalle, registro, checkout y CRUD de administración | Sonnet 5.5 | medio |
 
 Después siguen las Fases 5 (pruebas de frontend) y 6 (documentación); ver la sección 9.
@@ -76,6 +84,9 @@ Después siguen las Fases 5 (pruebas de frontend) y 6 (documentación); ver la s
 - Pruebas de integración con **Testcontainers `mysql:8.4`** (requiere Docker).
 - Compran el **cliente y el administrador** (el administrador tiene acceso total); el vendedor no compra.
 - Token de refresco **JWT sin estado** (no hay tabla de tokens); acceso de 15 minutos y refresco de 7 días.
+- En el navegador, los tokens se guardan en **`localStorage`** (sesión persistente ante recargas).
+- Cobertura del frontend: mínimo global de 90 % y 100 % en los archivos críticos (`src/services/`, `src/context/`, `src/utils/`).
+- Los commits del frontend desde la Fase 4.2 van **a nombre del colega como autor, con BnjmnD04 como coautor** (`Co-authored-by`).
 - Spring Boot **4.1.3** y Java **21**. (La 4.2.0 salió el 19-nov-2026; se prefirió la 4.1.x por ser una versión `.0` recién publicada.)
 - El frontend mejorado de la rama `backup` ya está integrado en `eva3_dev` (Fase 4.1).
 
@@ -278,9 +289,9 @@ Leyenda: 🔴 no cumple · 🟠 parcial · 🟡 en curso · 🟢 listo en el bac
 |---|---|---|
 | IE3.1.1 Backend + BD | 🟢 | Monolito modular con MySQL 8.4, Flyway, entidades, servicios con reglas de negocio y pruebas (Mockito, MockMvc y Testcontainers). |
 | IE3.2.1 API REST + Swagger | 🟢 | CRUD bajo `/api/v1`, documentado en Swagger UI (`/swagger-ui.html`) con el botón *Authorize* para el token. |
-| IE3.2.2 Integración | 🔴 | El frontend no llama al backend: catálogo, carrito, login, registro, checkout y administración funcionan con `localStorage` (`src/data/*.js`). Se resuelve en 4.2 a 4.4. |
+| IE3.2.2 Integración | 🟠 | Login, registro y sesión ya usan la API. Catálogo, ofertas, detalle, checkout y administración siguen con `localStorage` (`src/data/*.js`); se pasan en 4.4. |
 | IE3.3.1 JWT + roles | 🟢 | Spring Security con JWT (acceso y refresco), BCrypt y `@PreAuthorize` por rol en cada endpoint. |
-| IE3.3.2 Sesión en el frontend | 🔴 | El login simulado no guarda token ni sesión. Se resuelve en 4.2 (`AuthContext`, `Authorization: Bearer`, refresco y cierre de sesión). |
+| IE3.3.2 Sesión en el frontend | 🟢 | `AuthContext` con tokens en `localStorage` (persiste al recargar), `Authorization: Bearer`, renovación automática del token, descarte de sesiones vencidas y botón **Cerrar Sesión**. |
 | IE3.3.3 Restricciones en el frontend | 🔴 | `/admin` no tiene guardia: se entra escribiendo la URL. El Vendedor ve lo mismo que el Administrador. |
 | Presentación | 🟠 | El guion existente es de la EP2. Falta guion EP3. |
 
@@ -401,9 +412,10 @@ cd backend
 
 ### Dónde está cada cosa en el frontend
 
-- `src/services/`: aún no existe; el cliente HTTP al backend (`http://localhost:8080/api/v1`) se crea en 4.2.
 - `src/data/productos.js`, `src/data/usuarios.js`: "base de datos" simulada en localStorage (a reemplazar por la API).
 - `src/context/CarritoContext.jsx`: estado global del carrito.
-- `src/pages/Login.jsx`: login simulado con `localStorage`; se reemplaza por `POST /auth/login` en 4.2.
+- `src/pages/Login.jsx` y `Registro.jsx`: usan `POST /auth/login` y `/auth/registro`.
 - `src/pages/admin/*`: panel de administración (sin guardia de acceso).
-- `src/tests/`: 94 pruebas Jasmine con 100 % de cobertura (`npm test`).
+- `src/services/api.js` y `src/services/sesion.js`: cliente HTTP con JWT y sesión en `localStorage`.
+- `src/context/AuthContext.jsx`: sesión global (`useAuth`).
+- `src/tests/`: 142 pruebas Jasmine con 100 % de cobertura (`npm test`).
