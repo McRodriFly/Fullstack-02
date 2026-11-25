@@ -3,7 +3,7 @@
 import { Link, useParams } from "react-router-dom";
 import { useConsultaApi } from "../../hooks/useConsultaApi";
 import { formatearPrecio } from "../../utils/formato";
-import { formatearFecha, textoEntrega } from "./formatoOrden";
+import { formatearFecha, textoEntrega } from "../../utils/formatoOrden";
 
 export default function AdminOrdenDetalle() {
   const { id } = useParams();

@@ -9,6 +9,7 @@ import Carrito from "./pages/Carrito";
 import Ofertas from "./pages/Ofertas";
 import Checkout from "./pages/Checkout";
 import CompraExitosa from "./pages/CompraExitosa";
+import MisCompras from "./pages/MisCompras";
 import CompraFallida from "./pages/CompraFallida";
 import ToastCarrito from "./components/ToastCarrito";
 import ErrorBoundary from "./components/ErrorBoundary";
@@ -93,6 +94,15 @@ export default function App() {
                   element={
                     <RutaProtegida roles={PERMISOS.comprar}>
                       <Checkout />
+                    </RutaProtegida>
+                  }
+                />
+                {/* El historial es de quien compra: cliente y administrador. */}
+                <Route
+                  path="/mis-compras"
+                  element={
+                    <RutaProtegida roles={PERMISOS.comprar}>
+                      <MisCompras />
                     </RutaProtegida>
                   }
                 />

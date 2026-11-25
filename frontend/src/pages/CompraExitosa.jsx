@@ -35,9 +35,14 @@ export default function CompraExitosa() {
           </div>
         )}
 
-        <Link to="/" className="btn btn-dark rounded-0 fw-bold px-4 py-2">
-          VOLVER A LA TIENDA
-        </Link>
+        <div className="d-flex flex-wrap justify-content-center gap-2">
+          <Link to="/" className="btn btn-dark rounded-0 fw-bold px-4 py-2">
+            VOLVER A LA TIENDA
+          </Link>
+          <Link to="/mis-compras" className="btn btn-outline-dark rounded-0 fw-bold px-4 py-2">
+            VER MIS COMPRAS
+          </Link>
+        </div>
       </div>
     </section>
   );

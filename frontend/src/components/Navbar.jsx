@@ -2,7 +2,7 @@
    estado menuAbierto (clase "show" de Bootstrap) en vez de data-bs-toggle,
    para que React controle el DOM y el comportamiento sea testeable.
    Con sesión iniciada muestra el nombre del usuario y el botón para salir. El
-   enlace del carrito no se muestra al vendedor. */
+   enlace del carrito no se muestra al vendedor y "Mis compras" solo a quien compra. */
 import { useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useCarrito } from "../context/CarritoContext";
@@ -62,6 +62,13 @@ export default function Navbar() {
                 </NavLink>
               </li>
             ))}
+            {tieneRol(usuario, PERMISOS.comprar) && (
+              <li className="nav-item">
+                <NavLink className="nav-link" to="/mis-compras" onClick={cerrarMenu}>
+                  Mis compras
+                </NavLink>
+              </li>
+            )}
             {tieneRol(usuario, PERMISOS.entrarAlPanel) && (
               <li className="nav-item">
                 <NavLink className="nav-link" to={rutaInicialPara(usuario)} onClick={cerrarMenu}>
