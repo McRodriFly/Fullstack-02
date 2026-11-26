@@ -1,0 +1,2153 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Audi F1 Store API",
+    "description": "API REST de la tienda: catálogo, usuarios y boletas. Los errores de toda la API tienen el formato del esquema ApiError. Las rutas privadas piden el token de acceso en el encabezado Authorization: Bearer.",
+    "version": "v1"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8080",
+      "description": "Generated server url"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Autenticación",
+      "description": "Inicio de sesión, registro y renovación del token. Público."
+    },
+    {
+      "name": "Productos",
+      "description": "Catálogo de la tienda. La lectura es pública; el resto es solo del administrador."
+    },
+    {
+      "name": "Boletas",
+      "description": "Órdenes de compra. El cliente compra y ve las suyas; administrador y vendedor consultan todas."
+    },
+    {
+      "name": "Usuarios",
+      "description": "Administración de cuentas. Solo el administrador."
+    },
+    {
+      "name": "Categorías",
+      "description": "Agrupaciones de productos. La lectura es pública; el resto es solo del administrador."
+    }
+  ],
+  "paths": {
+    "/api/v1/usuarios/{id}": {
+      "get": {
+        "tags": [
+          "Usuarios"
+        ],
+        "summary": "Obtener un usuario",
+        "description": "Solo administrador. 404 si no existe.",
+        "operationId": "obtenerUsuario",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id del usuario.",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "El usuario pedido.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsuarioResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Solicitud inválida: falta un dato, está mal formado o no cumple las validaciones. Los campos con problema se listan en «detalles».",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sin sesión, o el token de acceso venció o no es válido.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "La sesión no tiene el rol necesario para esta operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No existe un usuario con ese id.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "put": {
+        "tags": [
+          "Usuarios"
+        ],
+        "summary": "Actualizar un usuario",
+        "description": "Solo administrador. Sin contraseña conserva la actual. 409 si el correo ya lo usa otro usuario o si el administrador intenta cambiar su propio rol.",
+        "operationId": "actualizarUsuario",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id del usuario.",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UsuarioActualizacionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Usuario actualizado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsuarioResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Solicitud inválida: falta un dato, está mal formado o no cumple las validaciones. Los campos con problema se listan en «detalles».",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sin sesión, o el token de acceso venció o no es válido.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "La sesión no tiene el rol necesario para esta operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No existe un usuario con ese id.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "El correo ya lo usa otro usuario, o el administrador intentó cambiar su propio rol.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Usuarios"
+        ],
+        "summary": "Eliminar un usuario",
+        "description": "Solo administrador. 409 si es su propia cuenta o si el usuario tiene compras registradas.",
+        "operationId": "eliminarUsuario",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id del usuario.",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Usuario eliminado; sin contenido."
+          },
+          "400": {
+            "description": "Solicitud inválida: falta un dato, está mal formado o no cumple las validaciones. Los campos con problema se listan en «detalles».",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sin sesión, o el token de acceso venció o no es válido.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "La sesión no tiene el rol necesario para esta operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No existe un usuario con ese id.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Es la cuenta del propio administrador o el usuario tiene compras registradas.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/productos/{id}": {
+      "get": {
+        "tags": [
+          "Productos"
+        ],
+        "summary": "Obtener un producto",
+        "description": "Público. 404 si no existe.",
+        "operationId": "obtenerProducto",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id del producto.",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "El producto pedido.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductoResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Solicitud inválida: falta un dato, está mal formado o no cumple las validaciones. Los campos con problema se listan en «detalles».",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No existe un producto con ese id.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Productos"
+        ],
+        "summary": "Reemplazar un producto",
+        "description": "Solo administrador. Reemplaza todos los datos. 404 si el producto o la categoría no existen.",
+        "operationId": "actualizarProducto",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id del producto.",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProductoRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Producto reemplazado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductoResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Solicitud inválida: falta un dato, está mal formado o no cumple las validaciones. Los campos con problema se listan en «detalles».",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sin sesión, o el token de acceso venció o no es válido.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "La sesión no tiene el rol necesario para esta operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No existe el producto o la categoría indicada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Productos"
+        ],
+        "summary": "Eliminar un producto",
+        "description": "Solo administrador. 404 si no existe; 409 si ya se vendió.",
+        "operationId": "eliminarProducto",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id del producto.",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Producto eliminado; sin contenido."
+          },
+          "400": {
+            "description": "Solicitud inválida: falta un dato, está mal formado o no cumple las validaciones. Los campos con problema se listan en «detalles».",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sin sesión, o el token de acceso venció o no es válido.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "La sesión no tiene el rol necesario para esta operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No existe un producto con ese id.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "El producto ya se vendió y no se puede eliminar.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/categorias/{id}": {
+      "get": {
+        "tags": [
+          "Categorías"
+        ],
+        "summary": "Obtener una categoría",
+        "description": "Público. 404 si no existe.",
+        "operationId": "obtenerCategoria",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id de la categoría.",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "La categoría pedida.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CategoriaResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Solicitud inválida: falta un dato, está mal formado o no cumple las validaciones. Los campos con problema se listan en «detalles».",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No existe una categoría con ese id.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Categorías"
+        ],
+        "summary": "Renombrar una categoría",
+        "description": "Solo administrador. 404 si no existe; 409 si el nombre ya existe.",
+        "operationId": "actualizarCategoria",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id de la categoría.",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CategoriaRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Categoría renombrada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CategoriaResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Solicitud inválida: falta un dato, está mal formado o no cumple las validaciones. Los campos con problema se listan en «detalles».",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sin sesión, o el token de acceso venció o no es válido.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "La sesión no tiene el rol necesario para esta operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No existe una categoría con ese id.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Ya existe otra categoría con ese nombre.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Categorías"
+        ],
+        "summary": "Eliminar una categoría",
+        "description": "Solo administrador. 404 si no existe; 409 si todavía tiene productos.",
+        "operationId": "eliminarCategoria",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id de la categoría.",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Categoría eliminada; sin contenido."
+          },
+          "400": {
+            "description": "Solicitud inválida: falta un dato, está mal formado o no cumple las validaciones. Los campos con problema se listan en «detalles».",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sin sesión, o el token de acceso venció o no es válido.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "La sesión no tiene el rol necesario para esta operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No existe una categoría con ese id.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "La categoría todavía tiene productos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/usuarios": {
+      "get": {
+        "tags": [
+          "Usuarios"
+        ],
+        "summary": "Listar usuarios",
+        "description": "Solo administrador. Nunca devuelve contraseñas.",
+        "operationId": "listarUsuarios",
+        "responses": {
+          "200": {
+            "description": "Todos los usuarios, sin contraseñas.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UsuarioResponse"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sin sesión, o el token de acceso venció o no es válido.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "La sesión no tiene el rol necesario para esta operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Usuarios"
+        ],
+        "summary": "Crear un usuario con cualquier rol",
+        "description": "Solo administrador. 409 si el correo ya está registrado.",
+        "operationId": "crearUsuario",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UsuarioRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Usuario creado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsuarioResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Solicitud inválida: falta un dato, está mal formado o no cumple las validaciones. Los campos con problema se listan en «detalles».",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sin sesión, o el token de acceso venció o no es válido.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "La sesión no tiene el rol necesario para esta operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "El correo ya está registrado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/productos": {
+      "get": {
+        "tags": [
+          "Productos"
+        ],
+        "summary": "Listar productos",
+        "description": "Todo el catálogo o, con categoriaId, solo esa categoría. Público.",
+        "operationId": "listarProductos",
+        "parameters": [
+          {
+            "name": "categoriaId",
+            "in": "query",
+            "description": "Filtra por categoría",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Productos del catálogo; lista vacía si no hay ninguno.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ProductoResponse"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Solicitud inválida: falta un dato, está mal formado o no cumple las validaciones. Los campos con problema se listan en «detalles».",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Productos"
+        ],
+        "summary": "Crear un producto",
+        "description": "Solo administrador. 400 si los datos son inválidos; 404 si la categoría no existe.",
+        "operationId": "crearProducto",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProductoRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Producto creado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductoResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Solicitud inválida: falta un dato, está mal formado o no cumple las validaciones. Los campos con problema se listan en «detalles».",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sin sesión, o el token de acceso venció o no es válido.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "La sesión no tiene el rol necesario para esta operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "La categoría indicada no existe.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/categorias": {
+      "get": {
+        "tags": [
+          "Categorías"
+        ],
+        "summary": "Listar categorías",
+        "description": "Ordenadas por nombre. Público.",
+        "operationId": "listarCategorias",
+        "responses": {
+          "200": {
+            "description": "Categorías ordenadas por nombre.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CategoriaResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Categorías"
+        ],
+        "summary": "Crear una categoría",
+        "description": "Solo administrador. 409 si el nombre ya existe.",
+        "operationId": "crearCategoria",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CategoriaRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Categoría creada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CategoriaResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Solicitud inválida: falta un dato, está mal formado o no cumple las validaciones. Los campos con problema se listan en «detalles».",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sin sesión, o el token de acceso venció o no es válido.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "La sesión no tiene el rol necesario para esta operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Ya existe una categoría con ese nombre.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/boletas": {
+      "get": {
+        "tags": [
+          "Boletas"
+        ],
+        "summary": "Listar todas las boletas",
+        "description": "Administrador y vendedor. De la más reciente a la más antigua.",
+        "operationId": "listarBoletas",
+        "responses": {
+          "200": {
+            "description": "Todas las boletas, de la más reciente a la más antigua.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BoletaResponse"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sin sesión, o el token de acceso venció o no es válido.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "La sesión no tiene el rol necesario para esta operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Boletas"
+        ],
+        "summary": "Pagar el carrito",
+        "description": "Cliente o administrador con sesión. Cobra el precio vigente del catálogo y descuenta el stock. 400 si el carrito, la entrega o el cupón no son válidos; 404 si un producto no existe; 409 si no hay stock suficiente.",
+        "operationId": "pagarCarrito",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompraRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Compra registrada: la boleta con su detalle, el total y el stock ya descontado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BoletaResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "El carrito, la entrega o el cupón no son válidos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sin sesión, o el token de acceso venció o no es válido.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "La sesión no tiene el rol necesario para esta operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Un producto del carrito no existe.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "No hay stock suficiente de un producto.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/registro": {
+      "post": {
+        "tags": [
+          "Autenticación"
+        ],
+        "summary": "Registrarse como cliente",
+        "description": "Crea una cuenta de cliente y deja la sesión iniciada. 409 si el correo ya está registrado.",
+        "operationId": "registrarCliente",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegistroRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Cuenta de cliente creada y sesión iniciada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SesionResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Solicitud inválida: falta un dato, está mal formado o no cumple las validaciones. Los campos con problema se listan en «detalles».",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "El correo ya está registrado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/refresh": {
+      "post": {
+        "tags": [
+          "Autenticación"
+        ],
+        "summary": "Renovar los tokens",
+        "description": "Canjea el token de refresco por un par nuevo, con el rol actual del usuario. 401 si el token venció o no es válido: hay que volver a iniciar sesión.",
+        "operationId": "renovarTokens",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefrescoRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Par de tokens nuevo, con el rol actual del usuario.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SesionResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Solicitud inválida: falta un dato, está mal formado o no cumple las validaciones. Los campos con problema se listan en «detalles».",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "El token de refresco venció o no es válido: hay que volver a iniciar sesión.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/login": {
+      "post": {
+        "tags": [
+          "Autenticación"
+        ],
+        "summary": "Iniciar sesión",
+        "description": "Devuelve el token de acceso (15 min), el de refresco (7 días) y los datos del usuario. 401 si el correo o la contraseña son incorrectos.",
+        "operationId": "iniciarSesion",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Sesión iniciada: tokens y datos del usuario.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SesionResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Solicitud inválida: falta un dato, está mal formado o no cumple las validaciones. Los campos con problema se listan en «detalles».",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Correo o contraseña incorrectos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/boletas/{id}": {
+      "get": {
+        "tags": [
+          "Boletas"
+        ],
+        "summary": "Obtener una boleta con su detalle",
+        "description": "Administrador y vendedor. 404 si no existe.",
+        "operationId": "obtenerBoleta",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id de la boleta.",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "La boleta con su detalle.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BoletaResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Solicitud inválida: falta un dato, está mal formado o no cumple las validaciones. Los campos con problema se listan en «detalles».",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sin sesión, o el token de acceso venció o no es válido.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "La sesión no tiene el rol necesario para esta operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No existe una boleta con ese id.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/boletas/mias": {
+      "get": {
+        "tags": [
+          "Boletas"
+        ],
+        "summary": "Mis compras",
+        "description": "Las boletas del usuario de la sesión, de la más reciente a la más antigua.",
+        "operationId": "misCompras",
+        "responses": {
+          "200": {
+            "description": "Boletas del usuario de la sesión, de la más reciente a la más antigua.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BoletaResponse"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sin sesión, o el token de acceso venció o no es válido.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "La sesión no tiene el rol necesario para esta operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "UsuarioActualizacionRequest": {
+        "type": "object",
+        "description": "Cambios a un usuario desde la administración. Un PUT reemplaza nombre, correo y rol.",
+        "properties": {
+          "nombre": {
+            "type": "string",
+            "description": "Nombre de la persona. Máximo 100 caracteres.",
+            "example": "Vera Soto",
+            "maxLength": 100,
+            "minLength": 0
+          },
+          "correo": {
+            "type": "string",
+            "format": "email",
+            "description": "Correo electrónico; no puede usarlo otro usuario.",
+            "example": "vendedor@duoc.cl",
+            "maxLength": 150,
+            "minLength": 0
+          },
+          "contrasena": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Contraseña nueva, entre 4 y 72 caracteres. Omitir para conservar la actual.",
+            "example": "5678",
+            "maxLength": 72,
+            "minLength": 4
+          },
+          "rol": {
+            "type": "string",
+            "description": "Rol del usuario. El administrador no puede cambiar su propio rol.",
+            "enum": [
+              "ROLE_ADMIN",
+              "ROLE_VENDEDOR",
+              "ROLE_CLIENTE"
+            ],
+            "example": "ROLE_VENDEDOR"
+          }
+        },
+        "required": [
+          "correo",
+          "nombre",
+          "rol"
+        ]
+      },
+      "UsuarioResponse": {
+        "type": "object",
+        "description": "Datos públicos de un usuario. Nunca incluye la contraseña ni su hash.",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Identificador del usuario.",
+            "example": 3
+          },
+          "nombre": {
+            "type": "string",
+            "description": "Nombre de la persona.",
+            "example": "Cliente Demo"
+          },
+          "correo": {
+            "type": "string",
+            "description": "Correo electrónico.",
+            "example": "cliente@gmail.com"
+          },
+          "rol": {
+            "type": "string",
+            "description": "Rol de la cuenta.",
+            "enum": [
+              "ROLE_ADMIN",
+              "ROLE_VENDEDOR",
+              "ROLE_CLIENTE"
+            ],
+            "example": "ROLE_CLIENTE"
+          },
+          "creadoEn": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Fecha y hora en que se creó la cuenta.",
+            "example": "2026-11-25T12:55:03"
+          }
+        }
+      },
+      "ProductoRequest": {
+        "type": "object",
+        "description": "Datos de un producto al crearlo o reemplazarlo. Un PUT reemplaza todos los campos.",
+        "properties": {
+          "nombre": {
+            "type": "string",
+            "description": "Nombre del producto. Máximo 150 caracteres.",
+            "example": "Gorra Edición Especial",
+            "maxLength": 150,
+            "minLength": 0
+          },
+          "categoriaId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Id de una categoría existente.",
+            "example": 3
+          },
+          "precio": {
+            "type": "number",
+            "description": "Precio normal en pesos chilenos, sin decimales.",
+            "example": 35000,
+            "minimum": 0
+          },
+          "precioOferta": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "description": "Precio en oferta en pesos; debe ser menor que el precio normal. Omitir si no está en oferta.",
+            "example": 28000,
+            "minimum": 0
+          },
+          "imagen": {
+            "type": "string",
+            "description": "Nombre del archivo de la imagen del producto.",
+            "example": "Gorra1.jpeg",
+            "maxLength": 255,
+            "minLength": 0
+          },
+          "stock": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Unidades disponibles para la venta.",
+            "example": 8,
+            "minimum": 0
+          }
+        },
+        "required": [
+          "categoriaId",
+          "imagen",
+          "nombre",
+          "precio",
+          "stock"
+        ]
+      },
+      "ProductoResponse": {
+        "type": "object",
+        "description": "Producto del catálogo.",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Identificador del producto.",
+            "example": 4
+          },
+          "nombre": {
+            "type": "string",
+            "description": "Nombre del producto.",
+            "example": "Gorra Edición Especial"
+          },
+          "categoriaId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Id de la categoría del producto.",
+            "example": 3
+          },
+          "categoria": {
+            "type": "string",
+            "description": "Nombre de la categoría del producto.",
+            "example": "Gorras"
+          },
+          "precio": {
+            "type": "number",
+            "description": "Precio normal en pesos.",
+            "example": 35000
+          },
+          "precioOferta": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "description": "Precio en oferta en pesos; null si el producto no está en oferta.",
+            "example": 32000
+          },
+          "oferta": {
+            "type": "boolean",
+            "description": "Indica si el producto está en oferta.",
+            "example": true
+          },
+          "precioVigente": {
+            "type": "number",
+            "description": "Lo que se cobra hoy: el precio en oferta si existe, el normal si no.",
+            "example": 32000
+          },
+          "imagen": {
+            "type": "string",
+            "description": "Nombre del archivo de la imagen.",
+            "example": "Gorra1.jpeg"
+          },
+          "stock": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Unidades disponibles.",
+            "example": 8
+          }
+        }
+      },
+      "CategoriaRequest": {
+        "type": "object",
+        "description": "Datos de una categoría al crearla o renombrarla.",
+        "properties": {
+          "nombre": {
+            "type": "string",
+            "description": "Nombre de la categoría; no puede repetirse. Máximo 60 caracteres.",
+            "example": "Gorras",
+            "maxLength": 60,
+            "minLength": 0
+          }
+        },
+        "required": [
+          "nombre"
+        ]
+      },
+      "CategoriaResponse": {
+        "type": "object",
+        "description": "Categoría del catálogo.",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Identificador de la categoría.",
+            "example": 3
+          },
+          "nombre": {
+            "type": "string",
+            "description": "Nombre de la categoría.",
+            "example": "Gorras"
+          }
+        }
+      },
+      "UsuarioRequest": {
+        "type": "object",
+        "description": "Alta de un usuario desde la administración, con el rol que elija el administrador.",
+        "properties": {
+          "nombre": {
+            "type": "string",
+            "description": "Nombre de la persona. Máximo 100 caracteres.",
+            "example": "Vera Soto",
+            "maxLength": 100,
+            "minLength": 0
+          },
+          "correo": {
+            "type": "string",
+            "format": "email",
+            "description": "Correo electrónico; no puede estar registrado.",
+            "example": "vera@duoc.cl",
+            "maxLength": 150,
+            "minLength": 0
+          },
+          "contrasena": {
+            "type": "string",
+            "description": "Contraseña en claro, entre 4 y 72 caracteres.",
+            "example": "1234",
+            "maxLength": 72,
+            "minLength": 4
+          },
+          "rol": {
+            "type": "string",
+            "description": "Rol de la cuenta.",
+            "enum": [
+              "ROLE_ADMIN",
+              "ROLE_VENDEDOR",
+              "ROLE_CLIENTE"
+            ],
+            "example": "ROLE_VENDEDOR"
+          }
+        },
+        "required": [
+          "contrasena",
+          "correo",
+          "nombre",
+          "rol"
+        ]
+      },
+      "CompraRequest": {
+        "type": "object",
+        "description": "El carrito al pagar. No trae precios ni totales: el servidor los calcula con el catálogo.",
+        "properties": {
+          "items": {
+            "type": "array",
+            "description": "Productos a comprar, entre 1 y 50 líneas.",
+            "items": {
+              "$ref": "#/components/schemas/Item"
+            },
+            "maxItems": 50,
+            "minItems": 0
+          },
+          "tipoEntrega": {
+            "type": "string",
+            "description": "Forma de entrega: DESPACHO exige dirección y ciudad; RETIRO las ignora.",
+            "enum": [
+              "DESPACHO",
+              "RETIRO"
+            ],
+            "example": "DESPACHO"
+          },
+          "direccionEnvio": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Dirección de despacho; obligatoria con DESPACHO.",
+            "example": "Av. Siempre Viva 742",
+            "maxLength": 200,
+            "minLength": 0
+          },
+          "ciudad": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Ciudad de despacho; obligatoria con DESPACHO.",
+            "example": "Santiago",
+            "maxLength": 80,
+            "minLength": 0
+          },
+          "cuponCodigo": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Código de cupón (F1AUDI 10 %, NEUBURG2026 15 %). Omitir si no se usa.",
+            "example": "F1AUDI",
+            "maxLength": 30,
+            "minLength": 0
+          }
+        },
+        "required": [
+          "items",
+          "tipoEntrega"
+        ]
+      },
+      "Item": {
+        "type": "object",
+        "description": "Una línea del carrito: producto y cantidad.",
+        "properties": {
+          "productoId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Id del producto.",
+            "example": 4
+          },
+          "cantidad": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Unidades a comprar; debe ser mayor que cero.",
+            "example": 2,
+            "exclusiveMinimum": 0
+          }
+        },
+        "required": [
+          "cantidad",
+          "productoId"
+        ]
+      },
+      "BoletaResponse": {
+        "type": "object",
+        "description": "Boleta de una compra. El número de pedido que ve el cliente se arma con el id (AUF1-000001).",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Identificador de la boleta.",
+            "example": 1
+          },
+          "usuarioId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Id del usuario que compró.",
+            "example": 3
+          },
+          "fecha": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Fecha y hora de la compra.",
+            "example": "2026-11-25T12:55:03"
+          },
+          "estado": {
+            "type": "string",
+            "description": "Estado de la boleta.",
+            "enum": [
+              "PAGADA",
+              "ANULADA"
+            ],
+            "example": "PAGADA"
+          },
+          "subtotal": {
+            "type": "number",
+            "description": "Suma de las líneas, en pesos, antes del descuento.",
+            "example": 70000
+          },
+          "descuento": {
+            "type": "number",
+            "description": "Monto descontado por el cupón, en pesos.",
+            "example": 7000
+          },
+          "total": {
+            "type": "number",
+            "description": "Total cobrado, en pesos: subtotal menos descuento.",
+            "example": 63000
+          },
+          "cuponCodigo": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Código del cupón aplicado; null si no se usó cupón.",
+            "example": "F1AUDI"
+          },
+          "tipoEntrega": {
+            "type": "string",
+            "description": "Forma de entrega.",
+            "enum": [
+              "DESPACHO",
+              "RETIRO"
+            ],
+            "example": "DESPACHO"
+          },
+          "direccionEnvio": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Dirección de despacho; null con retiro en tienda.",
+            "example": "Av. Siempre Viva 742"
+          },
+          "ciudad": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Ciudad de despacho; null con retiro en tienda.",
+            "example": "Santiago"
+          },
+          "detalles": {
+            "type": "array",
+            "description": "Líneas de la boleta, una por producto.",
+            "items": {
+              "$ref": "#/components/schemas/DetalleBoletaResponse"
+            }
+          }
+        }
+      },
+      "DetalleBoletaResponse": {
+        "type": "object",
+        "description": "Línea de una boleta: un producto con su cantidad y el precio cobrado.",
+        "properties": {
+          "productoId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Id del producto comprado.",
+            "example": 4
+          },
+          "productoNombre": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Nombre actual del producto; null si el catálogo ya no lo tiene.",
+            "example": "Gorra Edición Especial"
+          },
+          "cantidad": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Unidades compradas.",
+            "example": 2
+          },
+          "precioUnitario": {
+            "type": "number",
+            "description": "Precio por unidad cobrado en la compra (no el actual), en pesos.",
+            "example": 35000
+          },
+          "subtotal": {
+            "type": "number",
+            "description": "Precio unitario por cantidad, en pesos.",
+            "example": 70000
+          }
+        }
+      },
+      "RegistroRequest": {
+        "type": "object",
+        "description": "Registro público desde la tienda. No incluye rol: la cuenta nueva siempre es de cliente.",
+        "properties": {
+          "nombre": {
+            "type": "string",
+            "description": "Nombre de la persona. Máximo 100 caracteres.",
+            "example": "Ana Pérez",
+            "maxLength": 100,
+            "minLength": 0
+          },
+          "correo": {
+            "type": "string",
+            "format": "email",
+            "description": "Correo electrónico; no puede estar registrado.",
+            "example": "ana@gmail.com",
+            "maxLength": 150,
+            "minLength": 0
+          },
+          "contrasena": {
+            "type": "string",
+            "description": "Contraseña en claro, entre 4 y 72 caracteres.",
+            "example": "1234",
+            "maxLength": 72,
+            "minLength": 4
+          }
+        },
+        "required": [
+          "contrasena",
+          "correo",
+          "nombre"
+        ]
+      },
+      "SesionResponse": {
+        "type": "object",
+        "description": "Sesión abierta: los dos tokens y los datos del usuario.",
+        "properties": {
+          "tokenAcceso": {
+            "type": "string",
+            "description": "Token de acceso (15 minutos). Se envía en el encabezado Authorization: Bearer.",
+            "example": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwicm9sIjoiUk9MRV9DTElFTlRFIn0.firma"
+          },
+          "tokenRefresco": {
+            "type": "string",
+            "description": "Token de refresco (7 días). Solo sirve en POST /auth/refresh.",
+            "example": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIn0.firma"
+          },
+          "tipoToken": {
+            "type": "string",
+            "description": "Tipo de token; siempre Bearer.",
+            "example": "Bearer"
+          },
+          "expiraEn": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Segundos de vigencia del token de acceso.",
+            "example": 900
+          },
+          "usuario": {
+            "$ref": "#/components/schemas/UsuarioResponse",
+            "description": "Datos del usuario de la sesión."
+          }
+        }
+      },
+      "RefrescoRequest": {
+        "type": "object",
+        "description": "Token de refresco para obtener un par de tokens nuevo.",
+        "properties": {
+          "tokenRefresco": {
+            "type": "string",
+            "description": "Token de refresco recibido al iniciar sesión o en el último refresco (vale 7 días).",
+            "example": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIn0.firma",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "tokenRefresco"
+        ]
+      },
+      "LoginRequest": {
+        "type": "object",
+        "description": "Credenciales para iniciar sesión.",
+        "properties": {
+          "correo": {
+            "type": "string",
+            "description": "Correo con el que se registró la cuenta.",
+            "example": "cliente@gmail.com",
+            "maxLength": 150,
+            "minLength": 0
+          },
+          "contrasena": {
+            "type": "string",
+            "description": "Contraseña en claro; el servidor la compara con su hash BCrypt.",
+            "example": "1234",
+            "maxLength": 72,
+            "minLength": 0
+          }
+        },
+        "required": [
+          "contrasena",
+          "correo"
+        ]
+      },
+      "ApiError": {
+        "type": "object",
+        "description": "Formato único de error de toda la API.",
+        "properties": {
+          "fecha": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Fecha y hora en que ocurrió el error.",
+            "example": "2026-11-25T12:55:03.1"
+          },
+          "estado": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Código HTTP de la respuesta.",
+            "example": 409
+          },
+          "error": {
+            "type": "string",
+            "description": "Descripción estándar del código HTTP.",
+            "example": "Conflict"
+          },
+          "mensaje": {
+            "type": "string",
+            "description": "Explicación en español pensada para mostrarse al usuario.",
+            "example": "Stock insuficiente para el producto 9: pedido 6, disponible 5"
+          },
+          "ruta": {
+            "type": "string",
+            "description": "Ruta de la solicitud que falló.",
+            "example": "/api/v1/boletas"
+          },
+          "detalles": {
+            "type": "array",
+            "description": "Errores por campo cuando falla la validación; vacío en los demás casos.",
+            "example": [
+              "precio: debe ser mayor o igual a 0"
+            ],
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  }
+}
