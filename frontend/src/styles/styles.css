@@ -57,6 +57,16 @@ body {
   color: var(--color-secundario) !important; /* Hover en rojo */
 }
 
+/* Con el menú expandido (xl) los enlaces no se parten en dos líneas y se acercan
+   un poco para que quepan todos, también con la sesión iniciada. */
+@media (min-width: 1200px) {
+  #menuTienda .nav-link {
+    white-space: nowrap;
+    padding-left: 0.3rem;
+    padding-right: 0.3rem;
+  }
+}
+
 /* =========================================
    SECCIÓN HERO (Banner Principal)
 ========================================= */

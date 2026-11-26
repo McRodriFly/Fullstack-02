@@ -1,4 +1,4 @@
-/* Menú principal de la tienda. El colapso en pantallas < lg se maneja con el
+/* Menú principal de la tienda. El colapso en pantallas < xl se maneja con el
    estado menuAbierto (clase "show" de Bootstrap) en vez de data-bs-toggle,
    para que React controle el DOM y el comportamiento sea testeable.
    Con sesión iniciada muestra el nombre del usuario y el botón para salir. El
@@ -36,7 +36,7 @@ export default function Navbar() {
   }
 
   return (
-    <nav className="navbar navbar-expand-lg navbar-dark bg-dark border-bottom border-secondary">
+    <nav className="navbar navbar-expand-xl navbar-dark bg-dark border-bottom border-secondary">
       <div className="container">
         <Link className="navbar-brand fw-bold" to="/" onClick={cerrarMenu}>
           AUDI <span className="text-danger">F1</span> STORE
@@ -54,7 +54,7 @@ export default function Navbar() {
         </button>
 
         <div className={`collapse navbar-collapse ${menuAbierto ? "show" : ""}`} id="menuTienda">
-          <ul className="navbar-nav ms-auto mb-2 mb-lg-0">
+          <ul className="navbar-nav ms-auto mb-2 mb-xl-0">
             {ENLACES.map((enlace) => (
               <li className="nav-item" key={enlace.ruta}>
                 <NavLink className="nav-link" to={enlace.ruta} end onClick={cerrarMenu}>
