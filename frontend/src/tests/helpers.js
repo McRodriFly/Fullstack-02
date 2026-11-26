@@ -139,12 +139,16 @@ export function productosIniciales() {
   ];
 }
 
-/* Rutas de /productos y /categorias sobre arreglos en memoria que la prueba puede
-   leer y modificar (state.productos y state.categorias). Valida lo mismo que el
+/* Rutas de /productos, /categorias y /boletas sobre arreglos en memoria que la prueba puede
+   leer y modificar (state.productos, state.categorias y state.boletas). Valida lo mismo que el
    backend en lo básico: 404 si no existe, 409 al eliminar un producto "vendido"
    (state.vendidos), 409 por nombre de categoría repetido o con productos al eliminar. */
 export function catalogoSimulado() {
-  const state = { productos: productosIniciales(), categorias: CATEGORIAS_API.map((c) => ({ ...c })), vendidos: new Set() };
+  const state = {
+    productos: productosIniciales(), categorias: CATEGORIAS_API.map((c) => ({ ...c })), vendidos: new Set(),
+    // Boletas que ve el dashboard del administrador (GET /boletas); la prueba las llena si las necesita.
+    boletas: [],
+  };
   const buscar = (id) => state.productos.find((p) => p.id === Number(id));
   const buscarCategoria = (id) => state.categorias.find((c) => c.id === Number(id));
   const nombreRepetido = (nombre, idPropio) =>
@@ -160,6 +164,7 @@ export function catalogoSimulado() {
     "GET /productos": () => respuestaJson(200, state.productos),
     "GET /productos/:id": ({ params }) =>
       buscar(params.id) ? respuestaJson(200, buscar(params.id)) : errorApi(404, `El producto ${params.id} no existe`),
+    "GET /boletas": () => respuestaJson(200, state.boletas),
     "GET /categorias": () => respuestaJson(200, state.categorias),
     "POST /categorias": ({ cuerpo }) => {
       if (nombreRepetido(cuerpo.nombre)) return errorApi(409, `Ya existe la categoría ${cuerpo.nombre}`);
