@@ -76,9 +76,9 @@ El detalle de las decisiones de diseño del backend está en [`backend/ARQUITECT
 
 | Rol | Acceso |
 |---|---|
-| Administrador | Acceso total: panel de administración con productos, órdenes y usuarios. |
+| Administrador | Acceso total: dashboard con indicadores y gráficos, productos, categorías, órdenes y usuarios. |
 | Vendedor | Consulta de productos y de órdenes, en modo lectura. |
-| Cliente | Tienda: catálogo, carrito y compra. |
+| Cliente | Tienda: catálogo, carrito, compra e historial de compras (Mis compras). |
 
 Usuarios cargados por la migración de datos iniciales, para entornos de desarrollo. Se pueden usar en Swagger UI con `POST /api/v1/auth/login`.
 
@@ -100,7 +100,7 @@ npm ci
 npm test
 ```
 
-La ejecución espera `TOTAL: 215 SUCCESS` y falla si la cobertura global baja del 90 % o si la de un archivo crítico (sesión, cliente HTTP, contextos, guardia de rutas, validaciones y roles) baja del 100 %.
+La ejecución espera `TOTAL: 233 SUCCESS` y falla si la cobertura global baja del 90 % o si la de un archivo crítico (sesión, cliente HTTP, contextos, guardia de rutas, validaciones y roles) baja del 100 %.
 
 **Backend** (JUnit, Mockito, MockMvc y Testcontainers; requiere Docker en ejecución):
 
@@ -119,9 +119,12 @@ Son 148 pruebas, incluida una que verifica que la especificación OpenAPI docume
 
 En [`docs/`](docs/):
 
-- Documentación de APIs e integración (Anexo 2).
+- Especificación de requisitos del software (ERS), versión 3.0.
+- Documentación de APIs e integración (Anexo 2), con el modelo de datos.
 - Planilla de endpoints (Anexo 3).
 - Manual de usuario con capturas de pantalla (Anexo 4).
+- Evidencia de OpenAPI, con capturas de Swagger UI, y la especificación exportada ([`docs/openapi.json`](docs/openapi.json)).
+- Informe de pruebas con Jasmine y Karma.
 - Guion de la presentación.
 
 ## Estructura del repositorio
